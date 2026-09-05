@@ -9,7 +9,7 @@ pp.unicode.fun = true # pretty-prints `fun a ↦ b`
 autoImplicit = false
 linter.missingDocs = false
 linter.unusedVariables = true
-weak.verso.code.warnLineLength = 100
+# weak.verso.code.warnLineLength = 100
 
 [[require]]
 name = "verso"
@@ -32,12 +32,11 @@ rev = "v4.33.1"
 # [[lean_lib]]
 # name = "Extension"
 
-# [[lean_lib]]
-# name = "Book"
-# root = "Book"
+[[lean_lib]]
+name = "Basic"
 
-# [[lean_lib]]
-# name = "Chapter"
+[[lean_lib]]
+name = "Formula"
 
 [[lean_exe]]
 name = "main"

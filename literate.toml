@@ -1,0 +1,11 @@
+exclude = ["Main"]
+docstrings_as_text = true
+# landing_page = "Math"
+
+# [order_children]
+# "Math" = [
+#   "Math.Fib",
+#   "Math.Unitary"]
+
+# [modules."LinearAlgebra1"]
+# title = "線形代数1"
