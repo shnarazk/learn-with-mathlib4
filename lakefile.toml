@@ -1,0 +1,54 @@
+name = "LearnWithMathlib4"
+version = "0.1.0"
+lintDriver = "batteries/runLinter"
+testRunner = "testDriver"
+defaultTargets = ["main"]
+
+[leanOptions]
+pp.unicode.fun = true # pretty-prints `fun a ↦ b`
+autoImplicit = false
+linter.missingDocs = false
+linter.unusedVariables = true
+weak.verso.code.warnLineLength = 100
+
+[[require]]
+name = "verso"
+scope = "leanprover"
+# rev = "main"
+rev = "v4.33.0"
+
+[[require]]
+name = "batteries"
+scope = "leanprover-community"
+# rev = "main"
+rev = "v4.33.0"
+
+[[require]]
+name = "mathlib4"
+scope = "leanprover-community"
+# rev = "main"
+rev = "v4.33.1"
+
+# [[lean_lib]]
+# name = "Extension"
+
+# [[lean_lib]]
+# name = "Book"
+# root = "Book"
+
+# [[lean_lib]]
+# name = "Chapter"
+
+[[lean_exe]]
+name = "main"
+root = "Main"
+
+# [[lean_exe]]
+# name = "generate"
+# root = "Generate"
+
+# [[lean_exe]]
+# name = "testDriver"
+# # globs = [".+"]
+# root = "testDriver"
+# srcDir = "tests"
