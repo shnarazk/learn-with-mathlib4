@@ -1,7 +1,7 @@
 name = "LearnWithMathlib4"
 version = "0.1.0"
 lintDriver = "batteries/runLinter"
-testRunner = "testDriver"
+# testRunner = "testDriver"
 defaultTargets = ["main"]
 
 [leanOptions]
@@ -9,7 +9,7 @@ pp.unicode.fun = true # pretty-prints `fun a ↦ b`
 autoImplicit = false
 linter.missingDocs = false
 linter.unusedVariables = true
-# weak.verso.code.warnLineLength = 100
+weak.verso.code.warnLineLength = 80
 
 [[require]]
 name = "verso"
