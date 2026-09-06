@@ -9,7 +9,7 @@ pp.unicode.fun = true # pretty-prints `fun a ↦ b`
 autoImplicit = false
 linter.missingDocs = false
 linter.unusedVariables = true
-weak.verso.code.warnLineLength = 80
+# weak.verso.code.warnLineLength = 80
 
 [[require]]
 name = "verso"
@@ -24,7 +24,7 @@ scope = "leanprover-community"
 rev = "v4.33.0"
 
 [[require]]
-name = "mathlib4"
+name = "mathlib"
 scope = "leanprover-community"
 # rev = "main"
 rev = "v4.33.1"
@@ -37,6 +37,9 @@ name = "Basic"
 
 [[lean_lib]]
 name = "Formula"
+
+[[lean_lib]]
+name = "ConcreteMathematics"
 
 [[lean_exe]]
 name = "main"
