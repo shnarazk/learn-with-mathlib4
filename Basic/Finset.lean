@@ -5,8 +5,6 @@ public meta import Mathlib.Data.Finset.Sort
 public import Mathlib.Data.Nat.Basic
 public import Mathlib.Tactic
 
-namespace Fib
-
 open BigOperators
 open Nat
 
@@ -54,6 +52,22 @@ lemma range_add_one_eq_sup_self : Finset.range (n + 1) = Finset.range n ⊔ {n} 
 
 end Playground
 
+/-!
+色々なところで必要になるので、ここで ∑ に関する基本変換ルールを証明しておく。
+-/
+
+@[grind =, simp]
+public theorem sum_of_range_eq_sum_of_lt  {α : Type*} [AddCommMonoid α] :
+    ∀ f : ℕ -> α, ∀ n : ℕ, (∑ i ∈ Finset.range n, f i = ∑ i < n, f i) := by
+  intro f n
+  induction n with
+  | zero => rfl
+  | succ i ih =>
+    rw [Finset.sum_range_succ_comm, ih]
+    exact Eq.symm (Finset.sum_Iio_add_zero_comm i f)
+
+namespace Fibonacchi
+
 /-- 多重再帰定義による Fibonacci -/
 def fib (n : ℕ) : ℕ :=
   match n with
@@ -72,4 +86,4 @@ def fib (n : ℕ) : ℕ :=
 lemma fib_is_fib (n : ℕ) : fib (succ (succ n)) = fib (succ n) + fib n := by
   rw [fib]
 
-end Fib
+end Fibonacchi
