@@ -18,6 +18,7 @@ public import Mathlib.Data.Matrix.Basic
 - ベクトルと行列の関係など
 -/
 public import Mathlib.LinearAlgebra.Matrix.Basis
+public meta import Mathlib.LinearAlgebra.Matrix.Basis
 
 /- https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/LinearAlgebra/Matrix/NonsingularInverse.lean
 - 逆行列A⁻¹の定義
@@ -44,11 +45,9 @@ public import Mathlib.Data.Real.Basic
 /-- `!`がベクターの、`!!`が配列の即値形式 -/
 def m1 :=!![(0.0 : ℝ), 1, 0; 1, 1, 0; 0, 0, 1]
 
-#check m1.det.cauchy.unquot.val
+/-! `m1.det.cauchy.unquot.val : ℕ -> ℚ -/
+#eval m1.det.cauchy.unquot.val (10 : Nat)
 
--- #eval m1.det.cauchy.unquot.val (10 : Nat)
-
--- #eval (repr (0 : ℝ)).cauchy
 #norm_num m1.det
 #norm_num !![(3 : ℝ), 1, 0; 6, -2, 1; 3, 1, 2].det
 #norm_num !![(1 : ℝ), 2; 3, 4].det
@@ -58,25 +57,21 @@ def m1 :=!![(0.0 : ℝ), 1, 0; 1, 1, 0; 0, 0, 1]
 def m : Matrix (Fin 3) (Fin 3) ℝ :=
   Matrix.of (fun (m n : Fin 3) ↦ if m = n then 1 else 0.5)
 
-/-- zeroがあるはずなのだがよくわからない -/
-def m0 := m - m -- Matrix.of (fun _ _ ↦ 0)
+/-- ゼロ行列はdefault -/
+def m0 := (default : Matrix (Fin 3) (Fin 3) ℝ)
 
-#check m
--- #eval m
-#eval (1 : Fin 2)
+#guard (1 : Fin 2) = 1
 
 /- 実数はCauchy列として定義されているので、それっぽく表示するには皮を剥がないといけない -/
--- #eval m0 (0 : Fin 2) (1 : Fin 2) |>.cauchy.unquot.val 10
+-- #eval m0 (0 : Fin 3) (1 : Fin 3) |>.cauchy.unquot.val 10
 -- #eval m (0 : Fin 2) (1 : Fin 2) |>.cauchy.unquot.val 10
 
--- #eval m.det
+#eval m.det
 -- #norm_num m.det
 
-/-! ここから先はcopilotに聞きつつ進める -/
 open Matrix
 
 variable {m n : Type*} [Fintype m] [Fintype n] [DecidableEq m] [DecidableEq n]
--- variable {R : Type*} [CommRing R] [IsDomain R] [StarRing R]
 
 /-- Define a unitary matrix on ℝ -/
 def is_unitary (A : Matrix m m ℝ) : Prop := A * Aᴴ = 1
