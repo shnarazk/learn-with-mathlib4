@@ -71,6 +71,7 @@ def sum (n : ℕ) : ℕ := ∑ i ≤ n, i
 #guard sum 9 = 45
 
 /-! `sum`を使った`L`のclosed form -/
+@[grind =, simp]
 theorem ClosedFormOfL': ∀ n : ℕ, l n = 1 + sum n := by
   intro n
   induction n with
@@ -90,7 +91,7 @@ theorem ClosedFormOfL: ∀ n : ℕ, l n = n * (n + 1) / 2 + 1 := by
   simp [this]
   rw [← sum_of_range_eq_sum_of_lt (·)]
   rw [Finset.sum_range_id]
-  have : n = (2 * n) / 2 := by
+  replace : n = (2 * n) / 2 := by
     refine Nat.eq_div_of_mul_eq_right ?_ rfl
     · exact Ne.symm (Nat.zero_ne_add_one 1)
   rw (occs := .pos [3]) [this]
@@ -114,4 +115,30 @@ theorem ClosedFormOfL: ∀ n : ℕ, l n = n * (n + 1) / 2 + 1 := by
     rw [this]
     exact Eq.symm (Nat.mul_succ n n)
 
+/-!
+次に1回折れた"直線"を考える。
+-/
+
+/-- 1.7 -/
+@[grind =, simp]
+def z (n : ℕ) := l (2 * n) - 2 * n
+
+/-- 1.7 後半 -/
+theorem equation_1_7 : ∀ n : ℕ, z n = 2 * n ^ 2 - n + 1 := by
+  intro n
+  induction n with
+  | zero      => rfl
+  | succ n ih => rw [z, ClosedFormOfL] ; grind
+
 end Section2
+
+/-!
+## 1.3 The Josephus Problem
+-/
+section Section3
+
+/-!
+- `j` 参加人数`n`に対する生存者番号
+-/
+
+end Section3
