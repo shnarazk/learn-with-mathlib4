@@ -139,6 +139,47 @@ section Section3
 
 /-!
 - `j` 参加人数`n`に対する生存者番号
+- 定義域は `n ≥ 1`  なので `j 0 = 0`と置くことにした。
 -/
+@[grind =, simp]
+def j (n : ℕ) : ℕ :=
+  match h : n with
+  | 0    => 0
+  | 1    => 1
+  | n'+2 =>
+    if Even n then 2 * j (n / 2) - 1 else 2 * j (n / 2) + 1
+decreasing_by
+  · expose_names
+    rw [←h]
+    exact Nat.div_lt_self (Nat.lt_of_sub_eq_sub_one h) (by grind)
+  · expose_names
+    rw [←h]
+    exact Nat.div_lt_self (Nat.lt_of_sub_eq_sub_one h) (by grind)
+
+#guard j 1 = 1
+#guard j 2 = 1
+#guard j 3 = 3
+#guard j 14 = 13
+
+/-- `j`のclosed formを与える -/
+theorem equation_1_9 :
+    ∀ m : ℕ, ∀ l < 2 ^ m, j (2 ^ m + l) = 2 * l + 1 := by
+  intro m l pl
+  induction m using Nat.strongRecOn generalizing l with
+  | ind m ih' =>
+    match m, ih' with
+    | 0   , _  => simp at pl ; simp [pl]
+    | m'+1, ih =>
+      clear ih'
+      rw [j.eq_def]
+      split
+      · grind
+      · grind
+      · expose_names
+        split <;> {
+          have : (2 ^ (m'+1) + l) / 2 = 2 ^ m' + l / 2 := by
+            grind
+          replace ih := ih m' (by grind) (l / 2) (by grind)
+          grind }
 
 end Section3
