@@ -9,7 +9,7 @@
     "command": "watchexec",
     "args": [
       "--exts", "lean", "-r",
-      "\"rm -fr .lake/build/literate; lake build; lake build :literateHtml; lake exe verso-serve .lake/build/literate-html\""
+      "\"rm -fr .lake/build/literate; lake build && lake build :literateHtml && lake exe verso-serve .lake/build/literate-html\""
     ],
     "cwd": "$ZED_WORKTREE_ROOT",
     "use_new_terminal": true,
