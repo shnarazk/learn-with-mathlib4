@@ -33,6 +33,9 @@ rev = "v4.33.1"
 # name = "Extension"
 
 [[lean_lib]]
+name = "AnalysisI"
+
+[[lean_lib]]
 name = "Basic"
 
 [[lean_lib]]
