@@ -99,6 +99,7 @@ example : ∀ n m : Nat, ((n + m) : Nat) = Nat.add n m := by
 #guard Nat.add (5 : Nat) (2 : Nat) = (7 : Nat)
 
 /-- 0は(+)の単位元 -/
+@[grind =, simp]
 lemma lemma_2_2_2 : ∀ n : Nat, n + 0 = n := by
   intro n
   induction n with
@@ -108,6 +109,7 @@ lemma lemma_2_2_2 : ∀ n : Nat, n + 0 = n := by
     exact cast (congrArg (Eq (n'++ + 0)) (congrArg Nat.succ ih)) rfl
 
 /-- (++)と`Nat.add`の交換 -/
+@[grind =, simp]
 lemma lemma_2_2_3' : ∀ n m : Nat, Nat.add n (m++) = (Nat.add n m)++ := by
   intro n m
   induction n generalizing m with
@@ -129,7 +131,29 @@ example : ∀ n : Nat, n++ = n + 1 := by
   rw (occs := .pos [1]) [this]
   rw [← lemma_2_2_3 n]
   replace : 0++ = 1 := by rfl
-  simp [this]
+  grind
+
+/--
+Addition is commutative
+-/
+lemma proposition_2_2_4 : ∀ n m : Nat, n + m = m + n := by
+  intro n m
+  induction n with
+  | zero      =>
+    change 0 + m = m + 0
+    simp [lemma_2_2_2]
+    induction m with
+    | zero       => rfl
+    | succ m' ih => simp [ih]
+  | succ n ih =>
+    rw (occs := .pos [1]) [lemma_2_2_3]
+    rw [← ih]
+    change Nat.add (n++) m = (n + m)++;
+    rw [Nat.add.eq_def (n++) m] -- なぜ記法の変換に1 step取られるのだろう
+    simp [Nat.recurse]
+    rw [← Nat.add.eq_def n m]
+    change n + m = n + m
+    rfl
 
 end section_02_2
 
