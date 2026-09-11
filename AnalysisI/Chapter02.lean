@@ -87,9 +87,14 @@ public def Nat.add' (n m : Nat) : Nat :=
   | n'++ => (·++) (Nat.add' n' m) -- n'++ + m = (n' + m)++
 
 /-- 記法(+)を導入 -/
-instance Nat.instAdd : Add Nat where add := add
+@[grind =, simp]
+instance Nat.instAdd : Add Nat where add := Nat.add
 
+#guard Nat.add (1 : Nat) (3 : Nat) = (4 : Nat)
 #guard (1 : Nat) + (3 : Nat) = (4 : Nat)
+
+example : ∀ n m : Nat, ((n + m) : Nat) = Nat.add n m := by
+  solve_by_elim
 
 #guard Nat.add (5 : Nat) (2 : Nat) = (7 : Nat)
 
@@ -102,12 +107,29 @@ lemma lemma_2_2_2 : ∀ n : Nat, n + 0 = n := by
     -- ここでgrindは無力
     exact cast (congrArg (Eq (n'++ + 0)) (congrArg Nat.succ ih)) rfl
 
-/-- (++)と(+)の交換 -/
-lemma lemma_2_2_3 : ∀ n m : Nat, Nat.add n (m++) = (Nat.add n m)++ := by
+/-- (++)と`Nat.add`の交換 -/
+lemma lemma_2_2_3' : ∀ n m : Nat, Nat.add n (m++) = (Nat.add n m)++ := by
   intro n m
-  induction n  with
-  | zero      => rfl
-  | succ n ih => grind
+  induction n generalizing m with
+  | zero      => rfl   -- 0 + (m++) = m++ ∧ 0 + m = m → m++ = 0
+  | succ n ih => grind -- ih: n + (m++) = (n + m)++
+
+/--
+(++)と(+)の交換
+- なぜか直接解くのは大変だった。Nat.instAddが思うように使われない。 -/
+@[grind =, simp]
+lemma lemma_2_2_3 : ∀ n m : Nat, n + (m++) = (n + m)++ := by
+  intro n m
+  exact lemma_2_2_3' n m
+
+/-! As a paricular corollary of Lemma 2.2.2 and Lemma 2.2.3 -/
+example : ∀ n : Nat, n++ = n + 1 := by
+  intro n
+  have : n = n + 0 := by exact Eq.symm (lemma_2_2_2 n)
+  rw (occs := .pos [1]) [this]
+  rw [← lemma_2_2_3 n]
+  replace : 0++ = 1 := by rfl
+  simp [this]
 
 end section_02_2
 
