@@ -136,6 +136,7 @@ example : ∀ n : Nat, n++ = n + 1 := by
 /--
 Addition is commutative
 -/
+@[grind =, simp]
 lemma proposition_2_2_4 : ∀ n m : Nat, n + m = m + n := by
   intro n m
   induction n with
@@ -154,6 +155,24 @@ lemma proposition_2_2_4 : ∀ n m : Nat, n + m = m + n := by
     rw [← Nat.add.eq_def n m]
     change n + m = n + m
     rfl
+
+/--
+Addition is associative
+-/
+@[grind =, simp]
+lemma proposition_2_2_5 : ∀ a b c : Nat, (a + b) + c = a + (b + c) := by
+  intro a b c
+  induction c with
+  | zero      =>
+    change (a + b) + 0 = a + (b + 0)
+    simp
+  | succ c ih =>
+    have : (a + b) + c++ = (a + b + c)++ := by
+      exact lemma_2_2_3 (a + b) c
+    rw (occs := .pos [1]) [this]
+    rw [lemma_2_2_3]
+    rw [lemma_2_2_3]
+    rw [← ih]
 
 end section_02_2
 
