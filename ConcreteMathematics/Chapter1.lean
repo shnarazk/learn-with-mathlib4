@@ -193,17 +193,12 @@ lemma lemma_1 : ∀ n : ℕ, j n ≤ n := by
     · exact NeZero.one_le
     · expose_names
       simp at *
-      by_cases h : Even (n' + 1 + 1)
-      · simp [h]
+      by_cases h : Even (n' + 1 + 1) <;> {
+        simp [h]
         have : (n' + 1 + 1) / 2 ≤ n' + 1 := by
           refine Nat.div_two_le_of_sub_le_div_two ?_
           · simp ; grind
-        grind
-      · simp [h]
-        have : (n' + 1 + 1) / 2 ≤ n' + 1 := by
-          refine Nat.div_two_le_of_sub_le_div_two ?_
-          · simp ; grind
-        grind
+        grind }
 
 /-- jは不動点を持つ -/
 lemma j_has_a_fixpoint: ∀ n : ℕ, ∃ n' ≤ n, j n' = n' := by
