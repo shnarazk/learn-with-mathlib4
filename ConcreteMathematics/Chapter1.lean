@@ -182,4 +182,39 @@ theorem equation_1_9 :
           replace ih := ih m' (by grind) (l / 2) (by grind)
           grind }
 
+/-- jが不動点を持つことを言うための準備 -/
+lemma lemma_1 : ∀ n : ℕ, j n ≤ n := by
+  intro n
+  induction n using Nat.strongRecOn with
+  | ind m ih' =>
+    rw [j.eq_def]
+    split
+    · exact Nat.zero_le 0
+    · exact NeZero.one_le
+    · expose_names
+      simp at *
+      by_cases h : Even (n' + 1 + 1)
+      · simp [h]
+        have : (n' + 1 + 1) / 2 ≤ n' + 1 := by
+          refine Nat.div_two_le_of_sub_le_div_two ?_
+          · simp ; grind
+        grind
+      · simp [h]
+        have : (n' + 1 + 1) / 2 ≤ n' + 1 := by
+          refine Nat.div_two_le_of_sub_le_div_two ?_
+          · simp ; grind
+        grind
+
+/-- jは不動点を持つ -/
+lemma j_has_a_fixpoint: ∀ n : ℕ, ∃ n' ≤ n, j n' = n' := by
+  intro n
+  induction n using Nat.strongRecOn with
+  | ind n ih =>
+    have from_lemma_1 : j n ≤ n := by exact lemma_1 n
+    replace from_lemma_1 : j n < n ∨ j n = n := by
+      exact Or.symm (Nat.eq_or_lt_of_le from_lemma_1)
+    rcases from_lemma_1 with a|b
+    · grind
+    · use n
+
 end Section3
