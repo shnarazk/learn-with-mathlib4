@@ -37,7 +37,7 @@ public import Mathlib.LinearAlgebra.Matrix.Determinant.Basic
 public import Mathlib.LinearAlgebra.UnitaryGroup
 
 /- Real as Cauchy sequence -/
-public import Mathlib.Data.Real.Basic
+public import Mathlib.Basic.Real.Basic
 
 -- open Nat Finset Real
 -- open Matrix

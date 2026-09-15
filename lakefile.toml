@@ -15,19 +15,19 @@ linter.unusedVariables = true
 name = "verso"
 scope = "leanprover"
 # rev = "main"
-rev = "v4.33.0"
+rev = "v4.34.0"
 
 [[require]]
 name = "batteries"
 scope = "leanprover-community"
 # rev = "main"
-rev = "v4.33.0"
+rev = "v4.34.0"
 
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
 # rev = "main"
-rev = "v4.33.1"
+rev = "v4.34.0"
 
 # [[lean_lib]]
 # name = "Extension"

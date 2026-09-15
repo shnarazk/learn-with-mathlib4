@@ -1,11 +1,7 @@
 module
 
-public import Mathlib.Data.Real.Basic
--- import Mathlib.Data.Nat.Basic
+public import Mathlib.Basic.Real.Basic
 public import Formula.Leibniz
--- import Lean
--- import «Le»
--- import «Combinator»
 
 universe u
 
