@@ -182,6 +182,15 @@ theorem equation_1_9 :
           replace ih := ih m' (by grind) (l / 2) (by grind)
           grind }
 
+/-!
+## Relations in binary representation
+-/
+
+/-
+n = 2 ^ m + l → nの最上位bitをクリアしたものがl
+-/
+
+
 /-- jが不動点を持つことを言うための準備 -/
 lemma lemma_1 : ∀ n : ℕ, j n ≤ n := by
   intro n
