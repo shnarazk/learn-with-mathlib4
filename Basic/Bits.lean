@@ -118,3 +118,30 @@ Because `[false]` is not in the image.
 public theorem bits_is_injective : Function.Injective Nat.bits := by
   rw [Function.Injective]
   exact fun ⦃a₁ a₂⦄ a ↦ congrBitsEq a₁ a₂ a
+
+public theorem bit0_eq_false_iff_even {n : ℕ} (h : n > 0) :
+    (∃ l : List Bool, n.bits = false :: l) ↔ Even n := by
+  constructor
+  · intro cons_false
+    by_contra
+    have nbits_ne_nil : n.bits ≠ [] := by
+      by_contra
+      have : n = 0 := by exact bits_eq_nil_zero n this
+      replace h : ¬n = 0 := by exact Nat.ne_zero_iff_zero_lt.mpr h
+      grind
+    replace head_eq_false : n.bits.head nbits_ne_nil = false := by
+      grind
+    have head_eq_true : n.bits.head nbits_ne_nil = true := by
+      replace even : n = 2 * (n / 2) + 1 := by grind
+      have : n.bits = true :: (n / 2).bits := by
+        rw (occs := .pos [1]) [even]
+        refine Nat.bit1_bits (n / 2)
+      replace this : n.bits.head nbits_ne_nil = true := by grind
+      exact this
+    grind
+  · intro even
+    have : n.bits = false :: (n / 2).bits := by
+      have : n = 2 * (n / 2) := by grind
+      rw (occs := .pos [1]) [this]
+      exact Nat.bit0_bits (n / 2) (by grind)
+    grind
