@@ -46,7 +46,7 @@ theorem congrBitsEq (n : Nat) : ∀ m : ℕ, n.bits = m.bits → n = m := by
     by_cases n_eq_0 : n = 0
     · simp [n_eq_0] at *
       rw [← Nat.zero_bits] at p
-      have m0 : m = 0 := by exact base1 m p
+      have m0 : m = 0 := by exact bits_eq_null_zero m p
       grind
     · by_cases q : Even n
       · have n2 : n = (n / 2) * 2 := by grind
@@ -61,10 +61,20 @@ theorem congrBitsEq (n : Nat) : ∀ m : ℕ, n.bits = m.bits → n = m := by
         · have m2 : m = (m / 2) * 2 := by grind
           rw [m2] at p
           replace p : false :: (n / 2).bits = false :: (m / 2).bits := by
-            done
-            sorry
+            have s : (2 * (m / 2)).bits = false :: (m / 2).bits := by
+              have m_ge_2 : m ≥ 2 := by
+                by_cases m_eq_0 : m = 0
+                · simp [m_eq_0] at p
+                · by_cases m_eq_1 : m = 1
+                  · simp [m_eq_1] at q'
+                  · have : m ≥ 2 := by grind
+                    grind
+              exact Nat.bit0_bits (m / 2) (by grind)
+            rw (occs := .pos [1]) [mul_comm] at s
+            simp [s] at p
+            grind
           replace p : (n / 2).bits = (m / 2).bits := by grind
-          replace ih := ih (n / 2) (by sorry) (m / 2) p
+          replace ih := ih (n / 2) (by grind) (m / 2) p
           grind
         · have p' : m.bits = true :: (m / 2).bits := by
             have : m = 2 * (m / 2) + 1 := by grind
@@ -72,4 +82,28 @@ theorem congrBitsEq (n : Nat) : ∀ m : ℕ, n.bits = m.bits → n = m := by
             refine Nat.bit1_bits (m / 2)
           rw [p'] at p
           simp at p
-      · done
+      · have n2 : n = (n / 2) * 2 + 1 := by grind
+        rw [n2] at p
+        replace p : true :: (n / 2).bits = m.bits := by
+          have : ((n / 2) * 2 + 1).bits = true :: (n / 2).bits := by
+            rw [mul_comm]
+            refine Nat.bit1_bits (n / 2)
+          simp [this] at p
+          exact p
+        by_cases q' : Even m
+        · have p' : m.bits = false :: (m / 2).bits := by
+            have : m = 2 * (m / 2) := by grind
+            rw (occs := .pos [1]) [this]
+            refine Nat.bit0_bits (m / 2) ?_
+            · by_cases m_eq_0 : m = 0
+              · simp [m_eq_0] at *
+              · grind
+          simp [p'] at p
+        · have m2 : m = (m / 2) * 2 + 1 := by grind
+          rw [m2] at p
+          have : (2 * (m / 2) + 1).bits = true :: (m / 2).bits := by
+            refine Nat.bit1_bits (m / 2)
+          rw [mul_comm] at this
+          simp [this] at p
+          replace ih := ih (n / 2) (by grind) (m / 2) p
+          grind
