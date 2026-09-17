@@ -24,14 +24,14 @@ theorem gt_zero_bits_length : ∀ n > 0, n.bits.length > 0 := by
           exact Nat.bit1_bits (n / 2)
         simp
 
-theorem bits_eq_null_zero : ∀ n : ℕ, n.bits = [] → n = 0 := by
-  intro n bits_null
+theorem bits_eq_nil_zero : ∀ n : ℕ, n.bits = [] → n = 0 := by
+  intro n bits_nil
   by_cases n0 : n = 0
   · simp [n0]
   · have : n.bits.length > 0 := by exact gt_zero_bits_length n (by grind)
     replace this : ¬n.bits.length = 0 := by grind
-    replace bits_null : n.bits.length = 0 := by
-      exact List.eq_nil_iff_length_eq_zero.mp bits_null
+    replace bits_nil : n.bits.length = 0 := by
+      exact List.eq_nil_iff_length_eq_zero.mp bits_nil
     contradiction
 
 @[simp]
@@ -46,7 +46,7 @@ theorem congrBitsEq (n : Nat) : ∀ m : ℕ, n.bits = m.bits → n = m := by
     by_cases n_eq_0 : n = 0
     · simp [n_eq_0] at *
       rw [← Nat.zero_bits] at p
-      have m0 : m = 0 := by exact bits_eq_null_zero m p
+      have m0 : m = 0 := by exact bits_eq_nil_zero m p
       grind
     · by_cases q : Even n
       · have n2 : n = (n / 2) * 2 := by grind
@@ -107,3 +107,14 @@ theorem congrBitsEq (n : Nat) : ∀ m : ℕ, n.bits = m.bits → n = m := by
           simp [this] at p
           replace ih := ih (n / 2) (by grind) (m / 2) p
           grind
+
+#guard (0 : Nat).bits == []
+#guard (1 : Nat).bits == [true]
+#guard (2 : Nat).bits == [false, true]
+
+/-! Nat.bits is not bijective.
+Because `[false]` is not in the image.
+-/
+public theorem bits_is_injective : Function.Injective Nat.bits := by
+  rw [Function.Injective]
+  exact fun ⦃a₁ a₂⦄ a ↦ congrBitsEq a₁ a₂ a
