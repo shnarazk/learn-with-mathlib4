@@ -2,8 +2,10 @@ module
 
 public import Mathlib.Data.Finset.Basic
 public import Mathlib.Data.Nat.Basic
+public import Mathlib.Data.Nat.Bits
 public import Mathlib.Tactic
 public import Basic.Finset
+public import Basic.Bits
 
 /-!
 # 1章 再帰問題
@@ -187,9 +189,104 @@ theorem equation_1_9 :
 -/
 
 /-
-n = 2 ^ m + l → nの最上位bitをクリアしたものがl
+実はjは一種のbit列のシフト関数になっている。ここでLuby関数が頭をよぎる。
+- n = 2 ^ m + l → nの最上位bitをクリアしたものがl
 -/
 
+#guard (j (2 ^ 4 + 6)).bits = true :: (6 : ℕ).bits
+#guard (j (2 ^ 4 + 1)).bits = true :: (1 : ℕ).bits
+#guard (j (2 ^ 5 + 3)).bits = true :: (3 : ℕ).bits
+
+open Nat
+@[grind =, simp]
+theorem even_bits : ∀ n > 1, (2 * (n / 2)).bits = false :: (n / 2).bits := by
+  intro n n_gt_1
+  exact Nat.bit0_bits (n / 2) (by grind)
+
+@[grind =, simp]
+theorem odd_bits : ∀ n > 1, (2 * (n / 2) + 1).bits = true :: (n / 2).bits := by
+  intro n n_gt_1
+  exact Nat.bit1_bits (n / 2)
+
+/-- 補助定理 -/
+theorem r : ∀ n ≥ 4, ∀ l : List Bool,
+  n.bits = false :: true :: l → (n - 1).bits = true :: false :: l := by
+  intro n n_gt_1 l p
+  have n_is_even : Even n := by
+    exact (bit0_eq_false_iff_even (by grind)).mp (by grind)
+  have base4 : (2 * (n / 4)).bits = false :: (n / 4).bits := by
+    exact bit0_bits (n / 4) (by grind)
+  have base : (2 * (2 * (n / 4)) + 1).bits = true :: (false :: (n / 4).bits) := by
+    rw [← base4]
+    exact bit1_bits (2 * (n / 4))
+  have dec : (2 * (2 * (n / 4))).bits = false :: (false :: (n / 4).bits) := by
+    rw [← base4]
+    exact bit0_bits (2 * (n / 4)) (by grind)
+  have : 4 * (n / 4) + 2 = n := by grind
+  replace this : 2 * (2 * (n / 4)) + 1 = n - 1 := by grind
+  have l_def : (n / 4).bits = l := by
+    have n_def : 2 * (2 * (n / 4)) + 2 = n := by grind
+    rw [← n_def] at p
+    have calc1 : 2 * (2 * (n / 4)) + 2 = 2 * (2 * (n / 4) + 1) := by grind
+    simp [calc1] at p
+    grind
+  rw [← this]
+  grind
+
+example : ∀ m : ℕ, ∀ l < 2 ^ m,
+    (j (2 ^ m + l)).bits = true :: l.bits := by
+  intro m l lm
+  induction m using Nat.strongRecOn generalizing l with
+  | ind m ih' =>
+    rw [j.eq_def]
+    split <;> expose_names
+    · grind
+    · have p1 : 2 ^ m ≥ 1 := by grind
+      have p2 : l = 0 := by grind
+      simp [p2]
+    · simp at *
+      by_cases even : Even (2 ^ m + l)
+      · simp [even]
+        have : (2 ^ m + l) / 2 = 2 ^ (m - 1) + l / 2 := by
+          refine Eq.symm (Nat.eq_div_of_mul_eq_right ?_ ?_)
+          · grind
+          · rw [mul_add]
+            have : 2 * 2 ^ (m - 1) = 2 ^ m := by
+              exact mul_pow_sub_one (by grind) 2
+            simp [this]
+            refine Nat.mul_div_cancel' ?_
+            · replace this : Even l := by grind
+              exact Even.two_dvd this
+        rw [this]
+        have m_gt_0 : m > 0 := by grind
+        have even_l : Even l := by grind
+        replace ih' := ih' (m - 1) (by grind) (l / 2) (by grind)
+        by_cases l_eq_0 : l = 0
+        · simp [l_eq_0] at *
+          have bit1 : (1 : Nat).bits = [true] := by simp
+          rw [← bit1] at ih'
+          replace ih' : j (2 ^ (m - 1)) = 1 := by sorry
+          simp [ih']
+        have x : (2 * (l / 2)).bits = false :: (l / 2).bits := by
+          exact Nat.bit0_bits (l / 2) (by grind)
+        replace ih' : (2 * j (2 ^ (m - 1) + l / 2)).bits = false :: true :: (l / 2).bits := by
+          have : (2 * j (2 ^ (m - 1) + l / 2)).bits = false :: (j (2 ^ (m - 1) + l / 2)).bits := by
+            refine Nat.bit0_bits ?_ ?_
+            · have s1 : ¬(j (2 ^ (m - 1) + l / 2)).bits = [] := by simp [ih']
+              exact Ne.symm (ne_of_apply_ne Nat.bits fun a ↦ s1 (id (Eq.symm a)))
+          grind
+        have : (2 * j (2 ^ (m - 1) + l / 2) - 1).bits = true :: false :: (l / 2).bits := by
+          have r : ∀ n > 1, ∀ l : List Bool, n.bits = false :: true :: l → (n - 1).bits = true :: false :: l := by
+            intro n n_gt_1 l
+            done
+            have n_constraint : n = (n / 4) * 4 + 2 := by
+              done
+            done
+            sorry
+          done
+          sorry
+        grind
+      · sorry
 
 /-- jが不動点を持つことを言うための準備 -/
 lemma lemma_1 : ∀ n : ℕ, j n ≤ n := by
