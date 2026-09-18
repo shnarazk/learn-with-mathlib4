@@ -208,10 +208,11 @@ theorem odd_bits : ∀ n > 1, (2 * (n / 2) + 1).bits = true :: (n / 2).bits := b
   intro n n_gt_1
   exact Nat.bit1_bits (n / 2)
 
-/-- 補助定理 -/
-theorem r : ∀ n ≥ 4, ∀ l : List Bool,
+/-- 補助定理
+- n - 1 = 1 は`[true, false]` になれないので、 n = 2 は範囲外。 -/
+theorem b10_sub_1_eq_b10 : ∀ n ≥ 4, ∀ l : List Bool,
   n.bits = false :: true :: l → (n - 1).bits = true :: false :: l := by
-  intro n n_gt_1 l p
+  intro n n_ge_4 l p
   have n_is_even : Even n := by
     exact (bit0_eq_false_iff_even (by grind)).mp (by grind)
   have base4 : (2 * (n / 4)).bits = false :: (n / 4).bits := by
@@ -233,6 +234,7 @@ theorem r : ∀ n ≥ 4, ∀ l : List Bool,
   rw [← this]
   grind
 
+/-- これはちょっと無理。Nat.Bitsの表現は上位のfalseを保持できないので等価判定の拡大が必要。 -/
 example : ∀ m : ℕ, ∀ l < 2 ^ m,
     (j (2 ^ m + l)).bits = true :: l.bits := by
   intro m l lm
@@ -276,15 +278,8 @@ example : ∀ m : ℕ, ∀ l < 2 ^ m,
               exact Ne.symm (ne_of_apply_ne Nat.bits fun a ↦ s1 (id (Eq.symm a)))
           grind
         have : (2 * j (2 ^ (m - 1) + l / 2) - 1).bits = true :: false :: (l / 2).bits := by
-          have r : ∀ n > 1, ∀ l : List Bool, n.bits = false :: true :: l → (n - 1).bits = true :: false :: l := by
-            intro n n_gt_1 l
-            done
-            have n_constraint : n = (n / 4) * 4 + 2 := by
-              done
-            done
-            sorry
-          done
-          sorry
+          refine b10_sub_1_eq_b10 (2 * j (2 ^ (m - 1) + l / 2)) ?_ (l / 2).bits ih'
+          · sorry
         grind
       · sorry
 
