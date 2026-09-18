@@ -313,4 +313,45 @@ lemma j_has_a_fixpoint: ∀ n : ℕ, ∃ n' ≤ n, j n' = n' := by
     · grind
     · use n
 
+/-!
+It’s not hard to verify that 2 ^ m − 2 is a multiple of 3 when m is odd, but not when m is even.
+-/
+#guard 3 ∣ (2 ^ 3 - 2)
+#guard 3 ∣ (2 ^ 5 - 2)
+
+theorem three_dvd_two_pow_odd_sub_two : ∀ m : ℕ, Odd m → 3 ∣ (2 ^ m - 2) := by
+  intro m
+  induction m using Nat.strongRecOn with
+  | ind m =>
+    by_cases m_range : m = 0
+    · simp [m_range] at *
+    · replace m_range : m ≥ 1 := by grind
+      replace m_range : m = 1 ∨ m > 1 := by grind
+      rcases m_range with ⟨m_eq_1, m_gt_1⟩ <;> expose_names
+      · intro odd
+        grind
+      · intro odd
+        have : m = m - 2 + 2 := by grind
+        rw [this]
+        replace this : 2 ^ (m - 2 + 2) =  2 ^ (m - 2) * 2 ^ 2 := by
+          grind
+        rw [this]
+        change 3 ∣ (2 ^ (m - 2) * 3 + 2 ^ (m - 2) - 2)
+        have sub:
+          2 ^ (m - 2) * 3 + 2 ^ (m - 2) - 2
+            = 2 ^ (m - 2) * 3 + (2 ^ (m - 2) - 2) := by
+          refine Nat.add_sub_assoc ?_ (2 ^ (m - 2) * 3)
+          · have m_ge_2 : m ≥ 2 := by grind
+            replace m_ge_2 : m = 2 ∨ m > 2 := by grind
+            rcases m_ge_2 with ⟨eq, gt⟩
+            · contradiction
+            · grind
+        rw [sub]
+        have mul3 : 3 ∣ (2 ^ (m - 2) * 3) := by grind
+        have rule (x a : ℕ) : 3 ∣ a → 3 ∣ (x * 3 + a) := by
+          grind
+        apply rule
+        replace h := h (m - 2) (by grind) (by grind)
+        exact h
+
 end Section3
