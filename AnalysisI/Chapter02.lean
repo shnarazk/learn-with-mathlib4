@@ -37,6 +37,10 @@ instance Nat.instZero : Zero Nat := ⟨ zero ⟩
 
 #guard (0 : Nat) = Nat.zero
 
+@[grind =, simp]
+lemma zero_eq_0 : Nat.zero = (0 : Nat) := by
+  exact (MulOpposite.op_eq_zero_iff Nat.zero).mp rfl
+
 /-- OfNatで`_root_.Nat`からのparserを提供する　-/
 instance Nat.instOfNat {n:_root_.Nat} : OfNat Nat n where
   ofNat := _root_.Nat.rec 0 (fun _ n ↦ n++) n
@@ -125,11 +129,12 @@ lemma lemma_2_2_3 : ∀ n m : Nat, n + (m++) = (n + m)++ := by
   exact lemma_2_2_3' n m
 
 /-! As a paricular corollary of Lemma 2.2.2 and Lemma 2.2.3 -/
-example : ∀ n : Nat, n++ = n + 1 := by
+@[grind =, simp]
+lemma add1_is_inc : ∀ n : Nat, n + 1 = n++ := by
   intro n
   have : n = n + 0 := by exact Eq.symm (lemma_2_2_2 n)
-  rw (occs := .pos [1]) [this]
-  rw [← lemma_2_2_3 n]
+  rw (occs := .pos [2]) [this]
+  rw [← lemma_2_2_3]
   replace : 0++ = 1 := by rfl
   grind
 
@@ -145,7 +150,7 @@ lemma proposition_2_2_4 : ∀ n m : Nat, n + m = m + n := by
     simp [lemma_2_2_2]
     induction m with
     | zero       => rfl
-    | succ m' ih => simp [ih]
+    | succ m' ih => grind
   | succ n ih =>
     rw (occs := .pos [1]) [lemma_2_2_3]
     rw [← ih]
@@ -173,6 +178,24 @@ lemma proposition_2_2_5 : ∀ a b c : Nat, (a + b) + c = a + (b + c) := by
     rw [lemma_2_2_3]
     rw [lemma_2_2_3]
     rw [← ih]
+
+/-- 加算の右キャンセル -/
+lemma proposition_2_2_6 : ∀ a b c : Nat, a + b = a + c → b = c := by
+  intro a b c
+  induction a with
+  | zero => intro h ; grind
+  | succ a ih =>
+    intro h
+    replace h : a + b + 1 = a + c + 1 := by grind
+    replace h : (a + b)++ = (a + c)++ := by
+      have ab : a + b + 1 = (a + b)++ := by grind
+      rw [← ab]
+      have ac : a + c + 1 = (a + c)++ := by grind
+      rw [← ac]
+      grind
+    replace h : a + b = a + c := by grind
+    replace ih := ih h
+    grind
 
 end section_02_2
 
