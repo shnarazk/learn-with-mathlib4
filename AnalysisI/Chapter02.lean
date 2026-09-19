@@ -197,6 +197,18 @@ lemma proposition_2_2_6 : ∀ a b c : Nat, a + b = a + c → b = c := by
     replace ih := ih h
     grind
 
+/-- Proposition 2.2.7: 正数の定義 -/
+@[grind =, simp]
+def Positive : Nat → Prop := fun n ↦ n ≠ 0
+
+lemma proposition_2_2_8 : ∀ a b : Nat, Positive a → Positive (a + b) := by
+  intro a b a_is_positive
+  induction b with
+  | zero => grind
+  | succ b ih =>
+    have : (a + b)++ ≠ 0 := by exact Nat.succ_ne (a + b)
+    grind
+
 end section_02_2
 
 end Chapter2
