@@ -353,5 +353,45 @@ theorem three_dvd_two_pow_odd_sub_two : ∀ m : ℕ, Odd m → 3 ∣ (2 ^ m - 2)
         apply rule
         replace h := h (m - 2) (by grind) (by grind)
         exact h
+/-!
+# 一般化
+
+このような関数を一般化した場合に対するclosed formの求め方を考える。
+-/
+
+/-- jを一般化するため変数α, β, γを使って対象の関数をfとして定義する。 -/
+@[grind =, simp]
+def f (n : Nat) (α β γ : Int) : Int :=
+  if h : n ≤ 1
+  then α
+  else 2 * f (n / 2) α β γ + if Even n then β else γ
+
+/-! α = 1, β = γ = 0 を例にとる。 -/
+#guard f 1 1 0 0= 1
+#guard f 4 1 0 0 = 2 * f 2 1 0 0
+
+/-!
+- f n = α * A n + β * B n + γ * C n
+として、関数A, B, Cを求めればよい。
+-/
+
+/-!
+仮に f _ = 1 なら以下の制約が抽出される。-/
+lemma f1_eq_1_leads_to {α β γ : ℤ} :
+    (∀ n, f n α β γ = 1) → α = 1 ∧ β = -1 ∧ γ = -1 := by
+  intro fn
+  have alpha : α = 1 := by
+    have f1 :  f 1 α β γ = α := by grind
+    replace fn := fn 1
+    grind
+  have beta : β = -1 := by
+    have f2 : f 2 α β γ = 2 + β := by grind
+    replace fn := fn 2
+    grind
+  have gamma : γ = -1 := by
+    have f3 : f 3 α β γ = 2 + γ := by grind
+    replace fn := fn 3
+    grind
+  grind
 
 end Section3
