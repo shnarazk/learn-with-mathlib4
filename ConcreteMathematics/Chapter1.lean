@@ -403,4 +403,34 @@ lemma fn_eq_n_leads_to {α β γ : ℤ} :
 以上からfが求まる。
 -/
 
+/-!
+## 3進数での例：計算のみ
+-/
+
+def g (n : ℕ) : ℤ :=
+  if n ≤ 1 then 3
+  else if n = 2 then 5
+  else if 3 ∣ n       then 10 * g (n / 3) + 76
+  else if 3 ∣ (n - 1) then 10 * g (n / 3) - 2
+  else                     10 * g (n / 3) + 8
+
+#guard g 19 = 1258
+
+example : g 19 = g (2 * 3 ^ 2 + 0 * 3 ^ 1 + 1 * 3 ^ 0) := by
+  simp
+
+/-!
+(2 0 1)₃ => (5 76 -2)₁₀
+-/
+example : g 19 = 5 * 10 ^ 2 + 76 * 10 ^ 1 + (-2) * 10 ^ 0 := by
+  simp [g]
+
+/-!
+# Exercises
+
+1. Analysis Iにも出てきた間違った帰納法の問題
+
+-/
+
+
 end Section3
