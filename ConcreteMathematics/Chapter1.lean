@@ -375,23 +375,32 @@ def f (n : Nat) (α β γ : Int) : Int :=
 として、関数A, B, Cを求めればよい。
 -/
 
-/-!
-仮に f _ = 1 なら以下の制約が抽出される。-/
+/--
+仮に f _ ... = 1 ならこれらの制約が抽出される。-/
 lemma f1_eq_1_leads_to {α β γ : ℤ} :
     (∀ n, f n α β γ = 1) → α = 1 ∧ β = -1 ∧ γ = -1 := by
   intro fn
-  have alpha : α = 1 := by
-    have f1 :  f 1 α β γ = α := by grind
-    replace fn := fn 1
-    grind
-  have beta : β = -1 := by
-    have f2 : f 2 α β γ = 2 + β := by grind
-    replace fn := fn 2
-    grind
-  have gamma : γ = -1 := by
-    have f3 : f 3 α β γ = 2 + γ := by grind
-    replace fn := fn 3
-    grind
+  have alpha : α =  1 := by replace fn := fn 1 ; grind
+  have beta  : β = -1 := by replace fn := fn 2 ; grind
+  have gamma : γ = -1 := by replace fn := fn 3 ; grind
   grind
+
+/--
+次に f n ... = n ならこれらの制約が抽出される。-/
+lemma fn_eq_n_leads_to {α β γ : ℤ} :
+    (∀ n, f n α β γ = n) → α = 1 ∧ β = 0 ∧ γ = 1 := by
+  intro fn
+  have alpha : α = 1 := by replace fn := fn 1 ; grind
+  have beta  : β = 0 := by replace fn := fn 2 ; grind
+  have gamma : γ = 1 := by replace fn := fn 3 ; grind
+  grind
+
+/-!
+従って、
+- f₁ = 1 = A - B - C
+- fₙ = n = A + C
+- A n = 2 ^ m -- これがどこからきたのか？
+以上からfが求まる。
+-/
 
 end Section3
