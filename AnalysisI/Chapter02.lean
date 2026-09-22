@@ -209,6 +209,25 @@ lemma proposition_2_2_8 : ∀ a b : Nat, Positive a → Positive (a + b) := by
     have : (a + b)++ ≠ 0 := by exact Nat.succ_ne (a + b)
     grind
 
+lemma corollary_2_2_9 : ∀ a b : Nat, a + b = 0 → a = 0 ∧ b = 0 := by
+  intro a b ab0
+  by_contra h
+  simp at h
+  by_cases a0 : a = 0
+  · simp [a0] at ab0
+    replace h := h a0
+    grind
+  · replace a0 : Positive a := by grind
+    have : Positive (a + b) := by exact proposition_2_2_8 a b a0
+    rw [ab0] at this
+    grind
+
+lemma lemma_2_2_10 : ∀ a : Nat, Positive a → ∃ b : Nat, b++ = a := by
+  intro a positive_a
+  induction a with
+  | zero     => grind
+  | succ c _ => use c
+
 end section_02_2
 
 end Chapter2
