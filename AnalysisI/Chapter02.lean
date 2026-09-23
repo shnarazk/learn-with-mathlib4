@@ -231,11 +231,12 @@ lemma lemma_2_2_10 : ∀ a : Nat, Positive a → ∃ b : Nat, b++ = a := by
 /-
 ## Ordering of Natural Numbers
 -/
-
+@[grind =, simp]
 instance Nat.instLE : LE Nat where
   le a b := ∃ c : Nat, a + c = b
 
 -- helped out by Claude
+@[grind =, simp]
 instance Nat.instDecidableLE : DecidableLE Nat
   | .zero, b => isTrue ⟨b, by
       calc (0 : Nat) + b = b + 0 := proposition_2_2_4 0 b
@@ -249,9 +250,11 @@ instance Nat.instDecidableLE : DecidableLE Nat
           replace hc : (a + c)++ = b++ := by grind
           exact h ⟨c, by injection hc⟩)
 
+@[grind =, simp]
 instance Nat.instLT : LT Nat where
   lt a b := a ≤ b ∧ a ≠ b
 
+@[grind =, simp]
 instance Nat.instDecidableLT : DecidableLT Nat :=
   fun a b => inferInstanceAs (Decidable (a ≤ b ∧ a ≠ b))
 
@@ -260,6 +263,25 @@ theorem proposition_2_2_12_a : ∀ a : Nat, a ≥ a := by
   intro a
   change ∃ c : Nat, a + c = a
   use 0
+  grind
+
+/-- Order is transitive -/
+theorem proposition_2_2_12_b : ∀ a b c : Nat, a ≥ b ∧ b ≥ c → a ≥ c := by
+  intro a b c abac
+  -- こうやって≥, >を分解する（これしかない?)
+  rcases abac with ⟨⟨d1, hd1⟩,  ⟨d2, hd2⟩⟩
+  refine ⟨d2 + d1, ?_⟩
+  rw [← proposition_2_2_5, hd2, hd1]
+
+/-- Order is antisymmetric -/
+theorem proposition_2_2_12_c : ∀ a b : Nat, a ≥ b ∧ b ≥ a → a = b := by
+  rintro a b ⟨⟨c1, h1⟩, ⟨c2, h2⟩⟩
+  replace h1 : b + (c1 + c2) = a + c2 := by grind
+  rw [h2] at h1
+  have : b = b + 0 := by grind
+  rw (occs := .pos [2]) [this] at h1
+  apply proposition_2_2_6 b (c1 + c2) 0 at h1
+  replace h1 : c1 = 0 ∧ c2 = 0 := corollary_2_2_9 c1 c2 h1
   grind
 
 end section_02_2
