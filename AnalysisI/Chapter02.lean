@@ -228,6 +228,40 @@ lemma lemma_2_2_10 : ∀ a : Nat, Positive a → ∃ b : Nat, b++ = a := by
   | zero     => grind
   | succ c _ => use c
 
+/-
+## Ordering of Natural Numbers
+-/
+
+instance Nat.instLE : LE Nat where
+  le a b := ∃ c : Nat, a + c = b
+
+-- helped out by Claude
+instance Nat.instDecidableLE : DecidableLE Nat
+  | .zero, b => isTrue ⟨b, by
+      calc (0 : Nat) + b = b + 0 := proposition_2_2_4 0 b
+        _ = b := lemma_2_2_2 b⟩
+  | a++, .zero => isFalse (by rintro ⟨c, hc⟩ ; grind)
+  | a++, b++ =>
+      match Nat.instDecidableLE a b with
+      | isTrue h => isTrue (h.elim fun c hc => ⟨c, by grind⟩)
+      | isFalse h => isFalse (by
+          rintro ⟨c, hc⟩
+          replace hc : (a + c)++ = b++ := by grind
+          exact h ⟨c, by injection hc⟩)
+
+instance Nat.instLT : LT Nat where
+  lt a b := a ≤ b ∧ a ≠ b
+
+instance Nat.instDecidableLT : DecidableLT Nat :=
+  fun a b => inferInstanceAs (Decidable (a ≤ b ∧ a ≠ b))
+
+/-- Order is reflective -/
+theorem proposition_2_2_12_a : ∀ a : Nat, a ≥ a := by
+  intro a
+  change ∃ c : Nat, a + c = a
+  use 0
+  grind
+
 end section_02_2
 
 end Chapter2
