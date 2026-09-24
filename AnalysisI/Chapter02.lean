@@ -284,6 +284,66 @@ theorem proposition_2_2_12_c : ∀ a b : Nat, a ≥ b ∧ b ≥ a → a = b := b
   replace h1 : c1 = 0 ∧ c2 = 0 := corollary_2_2_9 c1 c2 h1
   grind
 
+
+/-- Addition preserves order -/
+theorem proposition_2_2_12_d : ∀ a b c : Nat, a ≥ b ↔ a + c ≥ b + c := by
+  intro a b c
+  constructor
+  · intro ⟨d, ca⟩
+    change b + c ≤ a + c
+    change ∃ e : Nat, b + c + e = a + c
+    use d
+    grind
+  · intro ⟨d, ca⟩
+    change b ≤ a
+    change ∃ e : Nat, b + e = a
+    use d
+    replace ca : c + b + d = a + c := by grind
+    replace ca : c + (b + d) = c + a := by grind
+    replace ca : b + d = a := proposition_2_2_6 c (b + d) a ca
+    grind
+
+/-- 次の命題が難しいので補助定理を証明しておく。`≠` に関する定理がない。 -/
+theorem inc_add_ne_self : ∀ n a : Nat, n + 1 + a ≠ n := by
+  intro n a
+  by_contra
+  replace : 1 + a = 0 := by
+    rw (occs := .pos [2]) [← lemma_2_2_2 n] at this
+    rw [proposition_2_2_5] at this
+    apply proposition_2_2_6 n (1 + a) 0 at this
+    grind
+  replace this : (1 : Nat) = (0 : Nat) := by
+    apply corollary_2_2_9 1 a at this
+    grind
+  contradiction
+
+theorem proposition_2_2_12_e : ∀ a b : Nat, a < b ↔ a++ ≤ b := by
+  intro a b
+  constructor
+  · intro ab
+    change ∃ c : Nat, a++ + c = b
+    rcases ab with ⟨⟨d, ab'⟩, c⟩
+    rcases d with ⟨zero, succ⟩
+    · simp at ab' ; contradiction
+    · expose_names
+      use a_1
+      change (a + a_1)++ = b
+      grind
+  · intro ab
+    rw [← add1_is_inc] at ab
+    rcases ab with ⟨c, ab'⟩
+    rw [← ab']
+    change a ≤ a + 1 + c ∧ a ≠ a + 1 + c
+    constructor
+    · change ∃ d : Nat, a + d = a + 1 + c;
+      use 1 + c
+      grind
+    · have : 1 + c ≠ 0 := by exact Ne.symm (ne_of_beq_false rfl)
+      exact Ne.symm (inc_add_ne_self a c)
+
+theorem proposition_2_2_12_f : ∀ a b : Nat, a < b ↔ ∃ d : Nat, Positive d ∧ b = a + d := by
+  sorry
+
 end section_02_2
 
 end Chapter2
