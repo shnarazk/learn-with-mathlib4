@@ -342,7 +342,134 @@ theorem proposition_2_2_12_e : ∀ a b : Nat, a < b ↔ a++ ≤ b := by
       exact Ne.symm (inc_add_ne_self a c)
 
 theorem proposition_2_2_12_f : ∀ a b : Nat, a < b ↔ ∃ d : Nat, Positive d ∧ b = a + d := by
+  intro a b
+  constructor
+  · rintro ⟨⟨c, ac⟩, ab⟩
+    match c with
+    | .zero => simp at ac ; contradiction
+    | c'++ => use c'++ ; grind
+  · rintro ⟨e, ⟨pos_e, h⟩⟩
+    change a ≤ b ∧ a ≠ b
+    constructor
+    · change ∃ e, a + e = b
+      use e
+      grind
+    · by_contra
+      have : e = 0 := by
+        simp [this] at h
+        rw (occs := .pos [1]) [← lemma_2_2_2 b] at h
+        exact proposition_2_2_6 b e 0 (id (Eq.symm h))
+      grind
+
+/-- Trichotomy of order for natural numbers
+trichotomy とは a division into three categories。
+-/
+theorem proposition_2_2_13 : ∀ a b : Nat,
+    (¬ a < b ∨   a = b ∨ ¬ a > b) ∧
+    (  a < b ∨ ¬ a = b ∨ ¬ a > b) ∧
+    (¬ a < b ∨ ¬ a = b ∨   a > b) := by
+  intro a b
+  by_cases a_eq_b : a = b
+  · grind
+  · simp [a_eq_b]
+    by_contra
+    simp at this
+    rcases this with ⟨p1, p2⟩
+    obtain ⟨c1', p1'⟩ := p1
+    obtain ⟨c1, q1⟩ := c1'
+    obtain ⟨c2', p2'⟩ := p2
+    obtain ⟨c2, q2⟩ := c2'
+    rw [← q1] at q2
+    replace q2 : a + (c1 + c2) = a + 0 := by grind
+    replace q2 : c1 + c2 = 0 := by exact proposition_2_2_6 a (c1 + c2) 0 q2
+    have : c1 = 0 ∧ c2 = 0 := by exact corollary_2_2_9 c1 c2 q2
+    grind
+
+/-
+/-- Strong principle of induction
+Hint: define `Q n` to be the property that `P m` is true
+for all m₀ ≤ m < n; note that `Q n` is vacously true when n ≤ m₀.
+-/
+theorem propositixon_2_2_14 : ∀ m₀ : Nat, ∀ P : Nat -> Prop,
+    ∀ m ≥ m₀, (∀ m' ≥ m₀, m' < m → P m') → P m := by
+  -- FIXME: m = m₀ + d にすべき
+  intro m₀ P m m_def
+  -- この変換がわからなかった。
+  have : (∀ d : Nat, m₀ + d < m → P (m₀ + d)) = (∀ m' ≥ m₀, m' < m → P m') := by
+    apply propext
+    constructor
+    · intro h m'
+      intro hm' hlt
+      obtain ⟨d, hd⟩ := hm'
+      -- ⊢という使い方ができる
+      rw [← hd] at hlt ⊢
+      exact h d hlt
+    · intro h d m'
+      refine h (m₀ + d) ?_ m'
+      · rw [lemma_2_2_5]
+        done
+  have : ((∀ d : Nat, m₀ + d < m → P (m₀ + d)) → P m) → (∀ m' ≥ m₀, m' < m → P m') → P m := by
+    intro h hd
+    -- やはり (∀ n, f a) (a + b) = f (a + b) の変換が使える。
+    -- have h' := h (m₀ + d) -- ⟨d, rfl⟩ hd hp
+    -- have h'' := h (m₀ + d) ⟨d, rfl⟩ -- hd hp
+
+    done
+    exact h d (by done) ⟨d, rfl⟩ hd hp
+  apply this
+  clear this
+  replace : ∀ (e d : Nat), m₀ + d < (m₀ + e) → P (m₀ + d) → P (m₀ + e) → ∀ (d : Nat), m₀ + d < m → P (m₀ + d) → P m =
+
+  done
+  intro d
+  induction d with
+  | zero =>
+    simp
+    done
+    obtain ⟨c, p1⟩ := m_def
+    done
+    induction c generalizing m with
+    | zero      => simp at p1 ; simp [p1] at *
+    | succ c' ih =>
+      intro mm
+      done
+      have : m₀ + c' = m → m₀ < m := by
+        sorry
+      replace ih := ih this
+      done
+
+    rw [← p1]
+    done
+    replace m_def : m₀ <
   sorry
+  -- have p1₀ := p1 0
+  -- simp at p1₀
+  -- done
+  -- induction d with
+  -- | zero =>
+  --     simp at *
+  --     done
+  --     have : m₀ = 0 := by
+  --       have p1 : ∃ d : Nat, m₀ + d = 0 := by
+  --         exact Set.mem_range.mp m_def
+  --       rcases p1 with ⟨d, p1⟩
+  --       have p2 : d = 0 ∧ m₀ = 0 := by
+  --         exact And.symm (corollary_2_2_9 m₀ d p1)
+  --       grind
+  --     intro ih
+  --     simp [this] at *
+  --     replace ih := ih 0 m_def
+  --     done
+  --     simp [this] at ih
+  --     done
+  -- | succ m ih =>
+  -- let Q : Nat → Prop := fun n ↦ ∀ m' : Nat, m₀ ≤ m' ∧ m' < n → P m'
+  -- have q_def : Q = value_of% Q := by rfl;
+  -- have : Q m = ∀ m' : Nat, m₀ ≤ m' ∧ m' < m → P m' := by grind
+  -- rw [← this]
+  -- done
+  -- sorry
+-/
 
 end section_02_2
 
