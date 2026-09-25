@@ -1,5 +1,6 @@
 module
 
+public import Init.Control.State
 public import Mathlib.Data.Finset.Basic
 public import Mathlib.Data.Nat.Basic
 public import Mathlib.Data.Nat.Bits
@@ -428,9 +429,29 @@ example : g 19 = 5 * 10 ^ 2 + 76 * 10 ^ 1 + (-2) * 10 ^ 0 := by
 /-!
 # Exercises
 
+## Warmups
+
 1. Analysis Iにも出てきた間違った帰納法の問題
 
+2.
+- f n a c := f (n - 1) a b ; f 1 a c ; f (n - 1) b c
+a ↔ c が禁止されているなら
+を以下に変更
+- f n a c := f (n - 1) a b ; f (n - 1) b c ; f 1 a b ; f (n - 1) c a ; f 1 b c ; f (n - 1) a b ; f (n - 1) b c
 -/
 
+abbrev Hand := (ℕ × ℕ × ℕ)
+
+partial def hanoi' (dishes : ℕ) (f t o : ℕ) : (StateT (List Hand) (Except String)) (List Hand) := do
+  if dishes = 1 then
+    modify (· ++ [(1, f, t)])
+    get
+  else
+  let _ ← hanoi' (dishes - 1) f o t
+  modify (· ++ [(dishes, f, t)])
+  let _ ← hanoi' (dishes - 1) o t f
+  get
+
+#eval hanoi' 3 0 2 1 |>.run' []
 
 end Section3
