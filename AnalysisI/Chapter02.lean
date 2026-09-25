@@ -385,91 +385,26 @@ theorem proposition_2_2_13 : ∀ a b : Nat,
     have : c1 = 0 ∧ c2 = 0 := by exact corollary_2_2_9 c1 c2 q2
     grind
 
-/-
 /-- Strong principle of induction
 Hint: define `Q n` to be the property that `P m` is true
 for all m₀ ≤ m < n; note that `Q n` is vacously true when n ≤ m₀.
 -/
-theorem propositixon_2_2_14 : ∀ m₀ : Nat, ∀ P : Nat -> Prop,
-    ∀ m ≥ m₀, (∀ m' ≥ m₀, m' < m → P m') → P m := by
-  -- FIXME: m = m₀ + d にすべき
-  intro m₀ P m m_def
-  -- この変換がわからなかった。
-  have : (∀ d : Nat, m₀ + d < m → P (m₀ + d)) = (∀ m' ≥ m₀, m' < m → P m') := by
-    apply propext
-    constructor
-    · intro h m'
-      intro hm' hlt
-      obtain ⟨d, hd⟩ := hm'
-      -- ⊢という使い方ができる
-      rw [← hd] at hlt ⊢
-      exact h d hlt
-    · intro h d m'
-      refine h (m₀ + d) ?_ m'
-      · rw [lemma_2_2_5]
-        done
-  have : ((∀ d : Nat, m₀ + d < m → P (m₀ + d)) → P m) → (∀ m' ≥ m₀, m' < m → P m') → P m := by
-    intro h hd
-    -- やはり (∀ n, f a) (a + b) = f (a + b) の変換が使える。
-    -- have h' := h (m₀ + d) -- ⟨d, rfl⟩ hd hp
-    -- have h'' := h (m₀ + d) ⟨d, rfl⟩ -- hd hp
-
-    done
-    exact h d (by done) ⟨d, rfl⟩ hd hp
-  apply this
-  clear this
-  replace : ∀ (e d : Nat), m₀ + d < (m₀ + e) → P (m₀ + d) → P (m₀ + e) → ∀ (d : Nat), m₀ + d < m → P (m₀ + d) → P m =
-
+theorem proposition_2_2_14 : ∀ m₀ : Nat, ∀ P : Nat -> Prop,
+    (∀ m ≥ m₀, (∀ m' ≥ m₀, m' < m → P m') → P m) → ∀ m ≥ m₀, P m := by
+  intro m₀ P m ⟨d, hd⟩ m'_def
   done
-  intro d
+  rw [← hd] at m'_def ⊢
+  replace m'_def := m'_def (m₀ + d)
+  done
   induction d with
-  | zero =>
-    simp
+  | zero      =>
     done
-    obtain ⟨c, p1⟩ := m_def
+    simp at *
+    clear hd m
+    have z := m'_def m₀ (by sorry)
+    have q : ¬m₀++ ≤ m₀ := by sorry
     done
-    induction c generalizing m with
-    | zero      => simp at p1 ; simp [p1] at *
-    | succ c' ih =>
-      intro mm
-      done
-      have : m₀ + c' = m → m₀ < m := by
-        sorry
-      replace ih := ih this
-      done
-
-    rw [← p1]
-    done
-    replace m_def : m₀ <
-  sorry
-  -- have p1₀ := p1 0
-  -- simp at p1₀
-  -- done
-  -- induction d with
-  -- | zero =>
-  --     simp at *
-  --     done
-  --     have : m₀ = 0 := by
-  --       have p1 : ∃ d : Nat, m₀ + d = 0 := by
-  --         exact Set.mem_range.mp m_def
-  --       rcases p1 with ⟨d, p1⟩
-  --       have p2 : d = 0 ∧ m₀ = 0 := by
-  --         exact And.symm (corollary_2_2_9 m₀ d p1)
-  --       grind
-  --     intro ih
-  --     simp [this] at *
-  --     replace ih := ih 0 m_def
-  --     done
-  --     simp [this] at ih
-  --     done
-  -- | succ m ih =>
-  -- let Q : Nat → Prop := fun n ↦ ∀ m' : Nat, m₀ ≤ m' ∧ m' < n → P m'
-  -- have q_def : Q = value_of% Q := by rfl;
-  -- have : Q m = ∀ m' : Nat, m₀ ≤ m' ∧ m' < m → P m' := by grind
-  -- rw [← this]
-  -- done
-  -- sorry
--/
+  | succ d ih => done
 
 end section_02_2
 
