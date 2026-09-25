@@ -385,26 +385,52 @@ theorem proposition_2_2_13 : ∀ a b : Nat,
     have : c1 = 0 ∧ c2 = 0 := by exact corollary_2_2_9 c1 c2 q2
     grind
 
+/-- 補助定理 -/
+lemma self_lt_inc : ∀ n : Nat, n < n++ := by
+  intro n
+  change n ≤ n++ ∧ n ≠ n++;
+  constructor
+  · change ∃ d, n + d = n++;
+    use 1
+    exact add1_is_inc n
+  · by_contra
+    rw (occs := .pos [1]) [← lemma_2_2_2 n] at this
+    rw [← add1_is_inc] at this
+    apply proposition_2_2_6 n 0 1 at this
+    injection this
+
+/-- 補助定理 -/
+lemma lt_zero_eq_zero {n : Nat} :  n ≤ 0 → n = 0 := by
+  rintro ⟨d, p⟩
+  replace p : n = 0 ∧ d = 0 := by
+    exact corollary_2_2_9 n d p
+  exact p.left
+
 /-- Strong principle of induction
 Hint: define `Q n` to be the property that `P m` is true
 for all m₀ ≤ m < n; note that `Q n` is vacously true when n ≤ m₀.
 -/
 theorem proposition_2_2_14 : ∀ m₀ : Nat, ∀ P : Nat -> Prop,
     (∀ m ≥ m₀, (∀ m' ≥ m₀, m' < m → P m') → P m) → ∀ m ≥ m₀, P m := by
-  intro m₀ P m ⟨d, hd⟩ m'_def
-  done
-  rw [← hd] at m'_def ⊢
-  replace m'_def := m'_def (m₀ + d)
-  done
-  induction d with
+  intro m₀ P h m hm
+  suffices hQ : ∀ m m' : Nat, m₀ ≤ m' → m' < m → P m' by
+    exact hQ (m++) m hm (by exact self_lt_inc m)
+  -- この時点でgoalはhをより一般化したものになっている。
+  -- 従って再帰法が使いやすい
+  intro n
+  induction n with
   | zero      =>
-    done
-    simp at *
-    clear hd m
-    have z := m'_def m₀ (by sorry)
-    have q : ¬m₀++ ≤ m₀ := by sorry
-    done
-  | succ d ih => done
+    intro m'' mdef m''def
+    have : ¬m'' < 0 := by
+      change ¬(m'' ≤ 0 ∧ m'' ≠ 0)
+      by_contra
+      have q : m'' = 0 := by exact lt_zero_eq_zero this.left
+      exact absurd q this.right
+    exact absurd m''def this
+  | succ d ih =>
+    intro m'
+    replace h := h m'
+    sorry
 
 end section_02_2
 
