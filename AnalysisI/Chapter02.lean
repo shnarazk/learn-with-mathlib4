@@ -400,13 +400,39 @@ lemma self_lt_inc : ∀ n : Nat, n < n++ := by
     injection this
 
 /-- 補助定理 -/
-lemma lt_zero_eq_zero {n : Nat} :  n ≤ 0 → n = 0 := by
+lemma lt_zero_eq_zero {n : Nat} : n ≤ 0 → n = 0 := by
   rintro ⟨d, p⟩
   replace p : n = 0 ∧ d = 0 := by
     exact corollary_2_2_9 n d p
   exact p.left
 
-/-- Strong principle of induction
+/-- 補助定理 -/
+lemma lt_inc_eq_le {n m : Nat} : n < m++ ↔ n ≤ m := by
+  constructor
+  · intro n_lt_m
+    change ∃ c, n + c = m;
+    obtain ⟨⟨d, n_le_m⟩, n_eq_m⟩ := n_lt_m
+    induction d with
+    | zero => simp at n_le_m ; grind
+    | succ d d_gt_0 =>
+      rw (occs := .pos [1]) [lemma_2_2_3] at n_le_m
+      replace n_le_m : n + d = m := by grind
+      use d
+  · rintro ⟨d, n_le_m⟩
+    change n ≤ m++ ∧ n ≠ m++;
+    constructor
+    · change ∃ c, n + c = m++;
+      rw [← n_le_m]
+      use (d++)
+      exact lemma_2_2_3 n d
+    · by_contra
+      rw [← n_le_m] at this
+      rw (occs := .pos [1]) [← lemma_2_2_3] at this
+      rw (occs := .pos [1]) [← lemma_2_2_2 n] at this
+      apply proposition_2_2_6 n 0 (d++) at this
+      contradiction
+
+/-- Strong prdoneinciple of induction
 Hint: define `Q n` to be the property that `P m` is true
 for all m₀ ≤ m < n; note that `Q n` is vacously true when n ≤ m₀.
 -/
@@ -430,6 +456,9 @@ theorem proposition_2_2_14 : ∀ m₀ : Nat, ∀ P : Nat -> Prop,
   | succ d ih =>
     intro m'
     replace h := h m'
+    intro m₀_le_m' m'_d
+    replace h := h m₀_le_m'
+    done
     sorry
 
 end section_02_2
