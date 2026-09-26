@@ -165,8 +165,7 @@ lemma proposition_2_2_4 : ∀ n m : Nat, n + m = m + n := by
 Addition is associative
 -/
 @[grind =, simp]
-lemma proposition_2_2_5 : ∀ a b c : Nat, (a + b) + c = a + (b + c) := by
-  intro a b c
+lemma proposition_2_2_5 {a b c : Nat} : (a + b) + c = a + (b + c) := by
   induction c with
   | zero      =>
     change (a + b) + 0 = a + (b + 0)
@@ -180,8 +179,7 @@ lemma proposition_2_2_5 : ∀ a b c : Nat, (a + b) + c = a + (b + c) := by
     rw [← ih]
 
 /-- 加算の右キャンセル -/
-lemma proposition_2_2_6 : ∀ a b c : Nat, a + b = a + c → b = c := by
-  intro a b c
+lemma proposition_2_2_6 {a b c : Nat} : a + b = a + c → b = c := by
   induction a with
   | zero => intro h ; grind
   | succ a ih =>
@@ -201,16 +199,16 @@ lemma proposition_2_2_6 : ∀ a b c : Nat, a + b = a + c → b = c := by
 @[grind =, simp]
 def Positive : Nat → Prop := fun n ↦ n ≠ 0
 
-lemma proposition_2_2_8 : ∀ a b : Nat, Positive a → Positive (a + b) := by
-  intro a b a_is_positive
+lemma proposition_2_2_8 {a b : Nat} : Positive a → Positive (a + b) := by
+  intro a_is_positive
   induction b with
   | zero => grind
   | succ b ih =>
     have : (a + b)++ ≠ 0 := by exact Nat.succ_ne (a + b)
     grind
 
-lemma corollary_2_2_9 : ∀ a b : Nat, a + b = 0 → a = 0 ∧ b = 0 := by
-  intro a b ab0
+lemma corollary_2_2_9 {a b : Nat} : a + b = 0 → a = 0 ∧ b = 0 := by
+  intro ab0
   by_contra h
   simp at h
   by_cases a0 : a = 0
@@ -218,7 +216,7 @@ lemma corollary_2_2_9 : ∀ a b : Nat, a + b = 0 → a = 0 ∧ b = 0 := by
     replace h := h a0
     grind
   · replace a0 : Positive a := by grind
-    have : Positive (a + b) := by exact proposition_2_2_8 a b a0
+    have : Positive (a + b) := by exact proposition_2_2_8 a0
     rw [ab0] at this
     grind
 
@@ -280,8 +278,8 @@ theorem proposition_2_2_12_c : ∀ a b : Nat, a ≥ b ∧ b ≥ a → a = b := b
   rw [h2] at h1
   have : b = b + 0 := by grind
   rw (occs := .pos [2]) [this] at h1
-  apply proposition_2_2_6 b (c1 + c2) 0 at h1
-  replace h1 : c1 = 0 ∧ c2 = 0 := corollary_2_2_9 c1 c2 h1
+  apply proposition_2_2_6 at h1
+  replace h1 : c1 = 0 ∧ c2 = 0 := corollary_2_2_9 h1
   grind
 
 
@@ -300,7 +298,7 @@ theorem proposition_2_2_12_d : ∀ a b c : Nat, a ≥ b ↔ a + c ≥ b + c := b
     use d
     replace ca : c + b + d = a + c := by grind
     replace ca : c + (b + d) = c + a := by grind
-    replace ca : b + d = a := proposition_2_2_6 c (b + d) a ca
+    replace ca : b + d = a := proposition_2_2_6 ca
     grind
 
 /-- 次の命題が難しいので補助定理を証明しておく。`≠` に関する定理がない。 -/
@@ -310,10 +308,10 @@ theorem inc_add_ne_self : ∀ n a : Nat, n + 1 + a ≠ n := by
   replace : 1 + a = 0 := by
     rw (occs := .pos [2]) [← lemma_2_2_2 n] at this
     rw [proposition_2_2_5] at this
-    apply proposition_2_2_6 n (1 + a) 0 at this
+    apply proposition_2_2_6 at this
     grind
   replace this : (1 : Nat) = (0 : Nat) := by
-    apply corollary_2_2_9 1 a at this
+    apply corollary_2_2_9 at this
     grind
   contradiction
 
@@ -358,7 +356,7 @@ theorem proposition_2_2_12_f : ∀ a b : Nat, a < b ↔ ∃ d : Nat, Positive d 
       have : e = 0 := by
         simp [this] at h
         rw (occs := .pos [1]) [← lemma_2_2_2 b] at h
-        exact proposition_2_2_6 b e 0 (id (Eq.symm h))
+        exact proposition_2_2_6 (id (Eq.symm h))
       grind
 
 /-- Trichotomy of order for natural numbers
@@ -381,8 +379,8 @@ theorem proposition_2_2_13 : ∀ a b : Nat,
     obtain ⟨c2, q2⟩ := c2'
     rw [← q1] at q2
     replace q2 : a + (c1 + c2) = a + 0 := by grind
-    replace q2 : c1 + c2 = 0 := by exact proposition_2_2_6 a (c1 + c2) 0 q2
-    have : c1 = 0 ∧ c2 = 0 := by exact corollary_2_2_9 c1 c2 q2
+    replace q2 : c1 + c2 = 0 := by exact proposition_2_2_6 q2
+    have : c1 = 0 ∧ c2 = 0 := by exact corollary_2_2_9 q2
     grind
 
 /-- 補助定理 -/
@@ -396,14 +394,14 @@ lemma self_lt_inc : ∀ n : Nat, n < n++ := by
   · by_contra
     rw (occs := .pos [1]) [← lemma_2_2_2 n] at this
     rw [← add1_is_inc] at this
-    apply proposition_2_2_6 n 0 1 at this
+    apply proposition_2_2_6 at this
     injection this
 
 /-- 補助定理 -/
 lemma lt_zero_eq_zero {n : Nat} : n ≤ 0 → n = 0 := by
   rintro ⟨d, p⟩
   replace p : n = 0 ∧ d = 0 := by
-    exact corollary_2_2_9 n d p
+    exact corollary_2_2_9 p
   exact p.left
 
 /-- 補助定理 -/
@@ -429,7 +427,7 @@ lemma lt_inc_eq_le {n m : Nat} : n < m++ ↔ n ≤ m := by
       rw [← n_le_m] at this
       rw (occs := .pos [1]) [← lemma_2_2_3] at this
       rw (occs := .pos [1]) [← lemma_2_2_2 n] at this
-      apply proposition_2_2_6 n 0 (d++) at this
+      apply proposition_2_2_6 at this
       contradiction
 
 /-- Strong prdoneinciple of induction
