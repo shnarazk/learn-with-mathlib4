@@ -430,6 +430,52 @@ lemma lt_inc_eq_le {n m : Nat} : n < m++ ↔ n ≤ m := by
       apply proposition_2_2_6 at this
       contradiction
 
+/-- 補助定理 -/
+lemma lt_is_le {a b : Nat} : a < b → a ≤ b := by
+  rintro ⟨a_lt_b, a_ne_b⟩
+  grind
+
+/-- 補助定理 -/
+lemma le_eq_lt_and_eq {n m : Nat} {P : Prop} : (n ≤ m → P) ↔ (n < m → P) ∧ (n = m → P) := by
+  constructor
+  · intro n_ge_m
+    constructor
+    · intro p
+      apply lt_is_le at p
+      replace n_ge_m := n_ge_m p
+      grind
+    · intro n_eq_m
+      have : n ≤ m := by
+        change ∃ c, n + c = m
+        use 0
+        simp at *
+        grind
+      grind
+  · rintro ⟨n_gt_m, n_eq_m⟩ ⟨c, nm⟩
+    match c with
+    | .zero => simp at nm ; grind
+    | c++   =>
+      have : n < m := by
+        change  n ≤ m ∧ n ≠ m
+        constructor
+        · change ∃ d, n + d = m
+          use c++;
+        · by_contra
+          rw [← nm] at this
+          rw (occs := .pos [1]) [← lemma_2_2_2 n] at this
+          apply proposition_2_2_6 at this
+          contradiction
+      grind
+
+/-- 補助定理 -/
+lemma le_trans {a b c : Nat} : a ≤ b → b ≤ c → a ≤ c := by
+  rintro ⟨c1, a_le_b⟩ ⟨c2, b_le_c⟩
+  rw [← a_le_b] at b_le_c
+  rw [← b_le_c]
+  change ∃ c3, a + c3 = a + c1 + c2
+  use c1 + c2
+  grind
+
 /-- Strong prdoneinciple of induction
 Hint: define `Q n` to be the property that `P m` is true
 for all m₀ ≤ m < n; note that `Q n` is vacously true when n ≤ m₀.
@@ -440,7 +486,7 @@ theorem proposition_2_2_14 : ∀ m₀ : Nat, ∀ P : Nat -> Prop,
   suffices hQ : ∀ m m' : Nat, m₀ ≤ m' → m' < m → P m' by
     exact hQ (m++) m hm (by exact self_lt_inc m)
   -- この時点でgoalはhをより一般化したものになっている。
-  -- 従って再帰法が使いやすい
+  -- 従って帰納法が使いやすい
   intro n
   induction n with
   | zero      =>
@@ -456,8 +502,18 @@ theorem proposition_2_2_14 : ∀ m₀ : Nat, ∀ P : Nat -> Prop,
     replace h := h m'
     intro m₀_le_m' m'_d
     replace h := h m₀_le_m'
-    done
-    sorry
+    replace h : (∀ n : Nat, n ≥ m₀ → n < m' → P n) → P m' := by
+      grind
+    replace ih : ∀ n ≥ m₀, n < d → P n := by
+      grind
+    replace m'_d : m' ≤ d := by
+      apply lt_inc_eq_le.mp at m'_d
+      grind
+    have : ∀ n ≥ m₀, n < m'→ P n := by
+      intro x x_ge_m₀
+      done
+      sorry
+    grind
 
 end section_02_2
 
