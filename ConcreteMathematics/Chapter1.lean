@@ -323,7 +323,7 @@ theorem three_dvd_two_pow_odd_sub_two : ∀ m : ℕ, Odd m → 3 ∣ (2 ^ m - 2)
   induction m using Nat.strongRecOn with
   | ind m =>
     by_cases m_range : m = 0
-    · simp [m_range] at *
+    · subst m_range ; grind
     · replace m_range : m ≥ 1 := by grind
       replace m_range : m = 1 ∨ m > 1 := by grind
       rcases m_range with ⟨m_eq_1, m_gt_1⟩ <;> expose_names

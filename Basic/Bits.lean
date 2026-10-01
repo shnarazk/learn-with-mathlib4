@@ -44,9 +44,9 @@ theorem congrBitsEq (n : Nat) : ∀ m : ℕ, n.bits = m.bits → n = m := by
   induction n using Nat.strongRecOn generalizing m with
   | ind n ih =>
     by_cases n_eq_0 : n = 0
-    · simp [n_eq_0] at *
-      rw [← Nat.zero_bits] at p
-      have m0 : m = 0 := by exact bits_eq_nil_zero m p
+    · subst n_eq_0
+      have m0 : m = 0 := by
+        exact bits_eq_nil_zero m (id (Eq.symm p))
       grind
     · by_cases q : Even n
       · have n2 : n = (n / 2) * 2 := by grind
@@ -96,7 +96,7 @@ theorem congrBitsEq (n : Nat) : ∀ m : ℕ, n.bits = m.bits → n = m := by
             rw (occs := .pos [1]) [this]
             refine Nat.bit0_bits (m / 2) ?_
             · by_cases m_eq_0 : m = 0
-              · simp [m_eq_0] at *
+              · subst m_eq_0 ; simp at p
               · grind
           simp [p'] at p
         · have m2 : m = (m / 2) * 2 + 1 := by grind
