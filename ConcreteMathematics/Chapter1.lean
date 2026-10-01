@@ -247,8 +247,7 @@ example : ∀ m : ℕ, ∀ l < 2 ^ m,
     · have p1 : 2 ^ m ≥ 1 := by grind
       have p2 : l = 0 := by grind
       simp [p2]
-    · simp at *
-      by_cases even : Even (2 ^ m + l)
+    · by_cases even : Even (2 ^ m + l)
       · simp [even]
         have : (2 ^ m + l) / 2 = 2 ^ (m - 1) + l / 2 := by
           refine Eq.symm (Nat.eq_div_of_mul_eq_right ?_ ?_)
@@ -294,7 +293,6 @@ lemma lemma_1 : ∀ n : ℕ, j n ≤ n := by
     · exact Nat.zero_le 0
     · exact NeZero.one_le
     · expose_names
-      simp at *
       by_cases h : Even (n' + 1 + 1) <;> {
         simp [h]
         have : (n' + 1 + 1) / 2 ≤ n' + 1 := by

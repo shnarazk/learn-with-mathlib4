@@ -448,7 +448,6 @@ lemma le_eq_lt_and_eq {n m : Nat} {P : Prop} : (n ≤ m → P) ↔ (n < m → P)
       have : n ≤ m := by
         change ∃ c, n + c = m
         use 0
-        simp at *
         grind
       grind
   · rintro ⟨n_gt_m, n_eq_m⟩ ⟨c, nm⟩
