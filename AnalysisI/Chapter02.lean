@@ -475,44 +475,98 @@ lemma le_trans {a b c : Nat} : a ≤ b → b ≤ c → a ≤ c := by
   use c1 + c2
   grind
 
-/-- Strong prdoneinciple of induction
+/-- 補助定理 -/
+lemma lt_eq_le_and_ne {a b : Nat} : (a < b) ↔ (a ≤ b ∧ a ≠ b) := by
+  constructor
+  · rintro a_le_b
+    rcases a_le_b with ⟨c, ac_eq_b⟩
+    grind
+  · rintro ⟨a_le_b, a_ne_b⟩
+    change a ≤ b ∧ a ≠ b
+    constructor <;> grind
+
+/-- 補助定理 -/
+lemma le_self {a : Nat} : a ≤ a := by
+  change ∃ c, a + c = a
+  use 0
+  simp
+
+/-- Strong principle of induction
 Hint: define `Q n` to be the property that `P m` is true
 for all m₀ ≤ m < n; note that `Q n` is vacously true when n ≤ m₀.
 -/
 theorem proposition_2_2_14 : ∀ m₀ : Nat, ∀ P : Nat -> Prop,
     (∀ m ≥ m₀, (∀ m' ≥ m₀, m' < m → P m') → P m) → ∀ m ≥ m₀, P m := by
   intro m₀ P h m hm
-  suffices hQ : ∀ m m' : Nat, m₀ ≤ m' → m' < m → P m' by
-    exact hQ (m++) m hm (by exact self_lt_inc m)
-  -- この時点でgoalはhをより一般化したものになっている。
-  -- 従って帰納法が使いやすい
-  intro n
-  induction n with
-  | zero      =>
-    intro m'' mdef m''def
-    have : ¬m'' < 0 := by
-      change ¬(m'' ≤ 0 ∧ m'' ≠ 0)
-      by_contra
-      have q : m'' = 0 := by exact lt_zero_eq_zero this.left
-      exact absurd q this.right
-    exact absurd m''def this
-  | succ d ih =>
-    intro m'
-    replace h := h m'
-    intro m₀_le_m' m'_d
-    replace h := h m₀_le_m'
-    replace h : (∀ n : Nat, n ≥ m₀ → n < m' → P n) → P m' := by
-      grind
-    replace ih : ∀ n ≥ m₀, n < d → P n := by
-      grind
-    replace m'_d : m' ≤ d := by
-      apply lt_inc_eq_le.mp at m'_d
-      grind
-    have : ∀ n ≥ m₀, n < m'→ P n := by
-      intro x x_ge_m₀
-      done
-      sorry
+  have hm' : ∃ c, m = m₀ + c := by
+    rcases hm with ⟨c, hm'⟩
     grind
+  rcases hm' with ⟨c, hm'⟩
+  suffices key : ∀ c, ∀ m' ≥ m₀, m' ≤ m₀ + c → P m' by
+    have := key c (m₀ + c) (by grind) (proposition_2_2_12_a (m₀ + c))
+    grind
+  -- この時点でgoalはhをより一般化したものになっている。従って帰納法が使いやすい
+  intro c
+  induction c with
+  | zero      =>
+    intro m' hm' hle
+    simp at hle
+    /-
+      m₀ m c m' : Nat
+      P : Nat → Prop
+      h : ∀ m ≥ m₀, (∀ m' ≥ m₀, m' < m → P m') → P m
+      hm : m ≥ m₀
+      hm'✝ : m = m₀ + c
+      hm' : m' ≥ m₀
+      hle : m' ≤ m₀
+      ⊢ P m'
+    -/
+    apply h m' hm'
+    /-
+      ⊢ ∀ m'_1 ≥ m₀, m'_1 < m' → P m'_1
+    -/
+    intro m'' hm'' hlt''
+    have m'_eq_m₀ : m' = m₀ := by
+      rcases hm' with ⟨c1, hm''⟩
+      rcases hle with ⟨c2, hle⟩
+      rw [← hm''] at hle
+      rw (occs := .pos [2]) [← lemma_2_2_2 m₀] at hle
+      rw [proposition_2_2_5] at hle
+      apply proposition_2_2_6 at hle
+      have : c1 = 0 ∧ c2 = 0 := by exact corollary_2_2_9 hle
+      simp [this.left] at hm''
+      grind
+    subst m'_eq_m₀
+    expose_names
+    clear h hm hm'_1 hm' hle
+    rcases hlt'' with ⟨⟨c1, a⟩, ne⟩
+    rcases hm'' with ⟨c2, b⟩
+    rw [← b] at a
+    rw (occs := .pos [2]) [← lemma_2_2_2 m'] at a
+    rw [proposition_2_2_5] at a
+    apply proposition_2_2_6 at a
+    have : c2 = 0 := by
+      apply corollary_2_2_9 at a
+      grind
+    simp [this] at b
+    grind
+  | succ c ih =>
+    intro m' hm' hle
+    by_cases heq : m' = m₀ + c++ <;> expose_names
+    · subst heq
+      have h' := h (m₀ + c++) hm'
+      have ih' := fun m' hm' (hlt : m' < m₀ + c++) ↦ ih m' hm' (by
+        rw [lemma_2_2_3 m₀ c] at hlt
+        exact lt_inc_eq_le.mp hlt )
+      grind
+    · have : m' ≤ m₀ + c := by
+        have : m' < m₀ + c++ := by
+          refine lt_eq_le_and_ne.mpr ?_
+          · constructor <;> grind
+        rw [lemma_2_2_3 m₀ c] at this
+        apply lt_inc_eq_le.mp at this
+        grind
+      exact ih m' hm' this
 
 end section_02_2
 
