@@ -631,16 +631,30 @@ example {n : Nat} {P : Nat → Prop} :
           clear le
           match c with
           | .zero => grind
-          | c++ =>
-            use c
-            grind
+          | c++ => use c ; grind
     rcases m_le_s1 with ⟨le, ne⟩
     · replace h := h n Pn
       replace ih := ih h
-      have : m ≤ n := by
-        exact le_inc_eq_le le ne
+      have : m ≤ n := by exact le_inc_eq_le le ne
       grind
     · grind
+
+/-- Exercise 2.2.7: the principle of induction starting -/
+example {n : Nat} {P : Nat → Prop} :
+    (∀ m : Nat, P m → P (m++)) → P n → (∀ m : Nat, m ≥ n → P m) := by
+  intro pp pn
+  suffices key : ∀ c : Nat, P (n + c) by
+    intro m hm
+    obtain ⟨c, hc⟩ := hm
+    rw [← hc]
+    exact key c
+  intro c
+  induction c with
+  | zero      => grind
+  | succ c ih =>
+    replace pp := pp (n + c) ih
+    rw [lemma_2_2_3]
+    grind
 
 end section_02_2
 
