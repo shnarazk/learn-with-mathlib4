@@ -57,9 +57,9 @@ theorem Nat.succ_ne (n : Nat) : n++ ≠ 0 := by
   by_contra h -- n++ = zero と仮定
   injection h -- 両辺のconstructorが同じであることを確認
 
-theorem Nat.four_ne : (4 : Nat) ≠ 0 := by
+example : (4 : Nat) ≠ 0 := by
   change 3++ ≠ 0 -- goalを変更
-  exact succ_ne _
+  exact Nat.succ_ne _
 
 /-- 頻出する再帰の処理のパターン化
 - f: Natをふたつ引数に取る
@@ -71,6 +71,18 @@ public abbrev Nat.recurse (f: Nat → Nat → Nat) (c: Nat) : Nat → Nat :=
   fun n ↦ match n with
   | zero => c
   | n++  => f n (recurse f c n)
+
+theorem Nat.axiom_4 {a b : Nat} : a ≠ b → a++ ≠ b++ := by
+  intro a_ne_b
+  by_contra
+  injection this
+  grind
+
+theorem Nat.axiom_4' {a b : Nat} : a++ = b++ → a = b := by
+  intro a1_eq_b1
+  by_contra
+  apply Nat.axiom_4 at this
+  grind
 
 end section_02_1
 
@@ -567,6 +579,68 @@ theorem proposition_2_2_14 : ∀ m₀ : Nat, ∀ P : Nat -> Prop,
         apply lt_inc_eq_le.mp at this
         grind
       exact ih m' hm' this
+
+/-!
+## Exercises
+
+- 2.2.1 -> proposition_2_2_5
+- 2.2.2 -> lemma_2_2_10
+- 2.2.3 -> proposition_2.2.12
+- 2.2.4 -> proposition_2.2.13
+- 2.2.5 -> proposition_2.2.14
+-/
+
+/-- Excercise 2.2.6のための補助定理 -/
+lemma le_inc_eq_le {a b : Nat} : a ≤ b++ → a ≠ b++ → a ≤ b := by
+  intro a_le_b1 a_ne_b1
+  rcases a_le_b1 with ⟨c, le⟩
+  match c with
+  | .zero => simp at le ; grind
+  | c++   =>
+    rw [lemma_2_2_3] at le
+    change ∃ c, a + c = b
+    use c
+    have : a + c = b := by grind
+    grind
+
+/-- Excercise 2.2.6: Principle of backwards induction
+- Hint: apply induction to the variable $n$.
+-/
+example {n : Nat} {P : Nat → Prop} :
+    (∀ m : Nat, P (m++) → P m) → P n → (∀ m : Nat, m ≤ n → P m) := by
+  intro h Pn
+  induction n with
+  | zero      =>
+    simp at *
+    intro m m_le_0
+    have : m = 0 := by exact lt_zero_eq_zero m_le_0
+    subst this
+    grind
+  | succ n ih =>
+    intro m m_le_s1
+    replace m_le_s1 : m < n++ ∨ m = n++ := by
+      rcases m_le_s1 with ⟨c, le⟩
+      by_cases c_eq_0 : c = 0
+      · simp [c_eq_0] at le ; grind
+      · left
+        rw [← le]
+        rw (occs := .pos [1]) [← lemma_2_2_2 m]
+        refine (proposition_2_2_12_e (m + 0) (m + c)).mpr ?_
+        · simp
+          change ∃ d, m++ + d = m + c
+          clear le
+          match c with
+          | .zero => grind
+          | c++ =>
+            use c
+            grind
+    rcases m_le_s1 with ⟨le, ne⟩
+    · replace h := h n Pn
+      replace ih := ih h
+      have : m ≤ n := by
+        exact le_inc_eq_le le ne
+      grind
+    · grind
 
 end section_02_2
 
