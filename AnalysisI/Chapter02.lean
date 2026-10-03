@@ -50,6 +50,10 @@ instance Nat.instOfNat {n:_root_.Nat} : OfNat Nat n where
 /-- One は 1を与える型クラス -/
 instance Nat.instOne : One Nat := ⟨ 1 ⟩
 
+lemma Nat.zero_succ : 0++ = 1 := by rfl
+lemma Nat.one_succ  : 1++ = 2 := by rfl
+lemma Nat.two_succ  : 2++ = 3 := by rfl
+
 /--
 Axiom 2.3: ∀ n ∈ ℕ, n++ ≠ 0
 -/
@@ -61,6 +65,15 @@ example : (4 : Nat) ≠ 0 := by
   change 3++ ≠ 0 -- goalを変更
   exact Nat.succ_ne _
 
+/-- Axiom 2.5 (Principle of mathematical induction). The {tactic}`induction` (or
+  {tactic}`induction'`) tactic in Mathlib serves as a substitute for this axiom.  -/
+theorem Nat.induction (P : Nat → Prop) (hbase : P 0) (hind : ∀ n, P n → P (n++)) :
+    ∀ n, P n := by
+  intro n
+  induction n with
+  | zero => exact hbase
+  | succ n ih => exact hind _ ih
+
 /-- 頻出する再帰の処理のパターン化
 - f: Natをふたつ引数に取る
 - c: base caseで使われるNat
@@ -71,6 +84,39 @@ public abbrev Nat.recurse (f: Nat → Nat → Nat) (c: Nat) : Nat → Nat :=
   fun n ↦ match n with
   | zero => c
   | n++  => f n (recurse f c n)
+
+/-- Proposition 2.1.16 (recursive definitions). Compare with Mathlib's {name}`Nat.rec_zero`. -/
+theorem Nat.recurse_zero (f: Nat → Nat → Nat) (c: Nat) : Nat.recurse f c 0 = c := by rfl
+
+/-- Proposition 2.1.16 (recursive definitions). Compare with Mathlib's {name}`Nat.rec_add_one`. -/
+theorem Nat.recurse_succ (f: Nat → Nat → Nat) (c: Nat) (n: Nat) :
+    recurse f c (n++) = f n (recurse f c n) := by rfl
+
+/-- Proposition 2.1.16 (recursive definitions). -/
+theorem Nat.eq_recurse (f: Nat → Nat → Nat) (c: Nat) (a: Nat → Nat) :
+    (a 0 = c ∧ ∀ n, a (n++) = f n (a n)) ↔ a = recurse f c := by
+  constructor
+  . intro ⟨ h0, hsucc ⟩
+    -- this proof is written to follow the structure of the original text.
+    apply funext; apply induction
+    . exact h0
+    intro n hn
+    rw [hsucc n, recurse_succ, hn]
+  intro h
+  rw [h]
+  constructor -- could also use `split_ands` or `and_intros` here
+  . exact recurse_zero _ _
+  exact recurse_succ _ _
+
+/-- Proposition 2.1.16 (recursive definitions). -/
+theorem Nat.recurse_uniq (f: Nat → Nat → Nat) (c: Nat) :
+    ∃! (a: Nat → Nat), a 0 = c ∧ ∀ n, a (n++) = f n (a n) := by
+  apply ExistsUnique.intro (recurse f c)
+  . constructor -- could also use `split_ands` or `and_intros` here
+    . exact recurse_zero _ _
+    . exact recurse_succ _ _
+  intro a
+  exact (eq_recurse _ _ a).mp
 
 theorem Nat.axiom_4 {a b : Nat} : a ≠ b → a++ ≠ b++ := by
   intro a_ne_b
@@ -123,6 +169,10 @@ lemma lemma_2_2_2 : ∀ n : Nat, n + 0 = n := by
   | succ n' ih =>
     -- ここでgrindは無力
     exact cast (congrArg (Eq (n'++ + 0)) (congrArg Nat.succ ih)) rfl
+
+/-- Compare with Mathlib's {name}`Nat.zero_add`. -/
+@[simp]
+theorem Nat.zero_add (m: Nat) : 0 + m = m := recurse_zero (fun _ sum ↦ sum++) _
 
 /-- (++)と`Nat.add`の交換 -/
 @[grind =, simp]
@@ -206,6 +256,10 @@ lemma proposition_2_2_6 {a b c : Nat} : a + b = a + c → b = c := by
     replace h : a + b = a + c := by grind
     replace ih := ih h
     grind
+
+/-- 加算の右キャンセル -/
+lemma proposition_2_2_6' {a b : Nat} : a = b → ∀ c, a + c = b + c := by
+  sorry
 
 /-- Proposition 2.2.7: 正数の定義 -/
 @[grind =, simp]
@@ -657,5 +711,79 @@ example {n : Nat} {P : Nat → Prop} :
     grind
 
 end section_02_2
+
+/-!
+## Section 2.3: Multiplication
+-/
+section section_02_3
+
+open _root_.Chapter2.Nat
+
+/-- Definition 2.3.1 (Multiplication of natural numbers) -/
+abbrev Nat.mul (n m : Nat) : Nat := Nat.recurse (fun _ prod ↦ prod + m) 0 n
+
+#guard Nat.mul 0 1 = 0
+#guard Nat.mul 1 1 = 1
+#guard Nat.mul 3 2 = 6
+
+/-- This instance allows for the {kw (of := «term_*_»)}`*` notation to be used for natural number multiplication. -/
+instance Nat.instMul : Mul Nat where
+  mul := mul
+
+#guard 0 * 1 = 0
+#guard 1 * 1 = 1
+#guard 3 * 2 = 6
+
+/-- Definition 2.3.1 (Multiplication of natural numbers)
+Compare with Mathlib's {name}`Nat.zero_mul` -/
+theorem Nat.zero_mul (m: Nat) : 0 * m = 0 := Nat.recurse_zero (fun _ prod ↦ prod+m) _
+
+/-- Definition 2.3.1 (Multiplication of natural numbers)
+Compare with Mathlib's {name}`Nat.succ_mul` -/
+theorem Nat.succ_mul (n m: Nat) : (n++) * m = n * m + m := recurse_succ (fun _ prod ↦ prod+m) _ _
+
+theorem Nat.one_mul' (m : Nat) : 1 * m = 0 + m := by
+  rw [←zero_succ, succ_mul, zero_mul]
+/-- Compare with Mathlib's {name}`Nat.one_mul` -/
+theorem Nat.one_mul (m: Nat) : 1 * m = m := by
+  rw [one_mul', zero_add]
+
+theorem Nat.two_mul (m : Nat) : 2 * m = 0 + m + m := by
+  rw [←one_succ, succ_mul, one_mul']
+
+/-- This lemma will be useful to prove Lemma 2.3.2.
+Compare with Mathlib's {name}`Nat.mul_zero` -/
+lemma Nat.mul_zero (n : Nat) : n * 0 = 0 := by
+  induction n with
+  | zero      => exact zero_mul 0
+  | succ n ih => rw [succ_mul, ih] ; grind
+
+lemma Nat.mul_one (n : Nat) : n * 1 = n := by
+  induction n with
+  | zero      => exact zero_mul 0
+  | succ n ih => rw [succ_mul, ih] ; grind
+
+/-- This lemma will be useful to prove Lemma 2.3.2.
+Compare with Mathlib's {name}`Nat.mul_succ` -/
+lemma Nat.mul_succ (n m : Nat) : n * m++ = n * m + n := by
+   induction n with
+   | zero => simp [zero_mul]
+   | succ n' ih =>
+     rw [Nat.succ_mul, Nat.succ_mul, ih]
+     rw (occs := .pos [1]) [proposition_2_2_5]
+     rw (occs := .pos [1]) [proposition_2_2_5]
+     have : n' + m++ = m + n'++ := by grind
+     rw [this]
+
+/-- Lemma 2.3.2 (Multiplication is commutative) / Exercise 2.3.1
+Compare with Mathlib's {name}`Nat.mul_comm` -/
+lemma Nat.mul_comm (n m: Nat) : n * m = m * n := by
+  induction m with
+  | zero => simp [zero_mul] ; exact mul_zero n
+  | succ m' ih =>
+    rw [Nat.mul_succ, Nat.succ_mul]
+    grind
+
+end section_02_3
 
 end Chapter2
