@@ -210,9 +210,6 @@ lemma proposition_2_2_4 : ∀ n m : Nat, n + m = m + n := by
   | zero      =>
     change 0 + m = m + 0
     simp [lemma_2_2_2]
-    induction m with
-    | zero       => rfl
-    | succ m' ih => grind
   | succ n ih =>
     rw (occs := .pos [1]) [lemma_2_2_3]
     rw [← ih]
@@ -259,13 +256,14 @@ lemma proposition_2_2_6 {a b c : Nat} : a + b = a + c → b = c := by
 
 /-- 加算の右キャンセル -/
 lemma proposition_2_2_6' {a b : Nat} : a = b → ∀ c, a + c = b + c := by
-  sorry
+  intro a_eq_b c
+  simp [a_eq_b]
 
 /-- Proposition 2.2.7: 正数の定義 -/
 @[grind =, simp]
-def Positive : Nat → Prop := fun n ↦ n ≠ 0
+def Nat.IsPos : Nat → Prop := fun n ↦ n ≠ 0
 
-lemma proposition_2_2_8 {a b : Nat} : Positive a → Positive (a + b) := by
+lemma proposition_2_2_8 {a b : Nat} : Nat.IsPos a → Nat.IsPos (a + b) := by
   intro a_is_positive
   induction b with
   | zero => grind
@@ -281,12 +279,12 @@ lemma corollary_2_2_9 {a b : Nat} : a + b = 0 → a = 0 ∧ b = 0 := by
   · simp [a0] at ab0
     replace h := h a0
     grind
-  · replace a0 : Positive a := by grind
-    have : Positive (a + b) := by exact proposition_2_2_8 a0
+  · replace a0 : Nat.IsPos a := by grind
+    have : Nat.IsPos (a + b) := by exact proposition_2_2_8 a0
     rw [ab0] at this
     grind
 
-lemma lemma_2_2_10 : ∀ a : Nat, Positive a → ∃ b : Nat, b++ = a := by
+lemma lemma_2_2_10 : ∀ a : Nat, Nat.IsPos a → ∃ b : Nat, b++ = a := by
   intro a positive_a
   induction a with
   | zero     => grind
@@ -405,7 +403,7 @@ theorem proposition_2_2_12_e : ∀ a b : Nat, a < b ↔ a++ ≤ b := by
     · have : 1 + c ≠ 0 := by exact Ne.symm (ne_of_beq_false rfl)
       exact Ne.symm (inc_add_ne_self a c)
 
-theorem proposition_2_2_12_f : ∀ a b : Nat, a < b ↔ ∃ d : Nat, Positive d ∧ b = a + d := by
+theorem proposition_2_2_12_f : ∀ a b : Nat, a < b ↔ ∃ d : Nat, Nat.IsPos d ∧ b = a + d := by
   intro a b
   constructor
   · rintro ⟨⟨c, ac⟩, ab⟩
@@ -783,6 +781,41 @@ lemma Nat.mul_comm (n m: Nat) : n * m = m * n := by
   | succ m' ih =>
     rw [Nat.mul_succ, Nat.succ_mul]
     grind
+
+/-- This lemma will be useful to prove Lemma 2.3.3.
+Compare with Mathlib's {name}`Nat.mul_pos` -/
+lemma Nat.pos_mul_pos {n m: Nat} (h₁: n.IsPos) (h₂: m.IsPos) :
+    (n * m).IsPos := by
+  simp [Nat.IsPos] at *
+  match n with
+  | zero => simp at h₁
+  | succ n' => match m with
+    | zero => simp at h₂
+    | succ m' =>
+      by_contra eq
+      have weird : (n'++ * m') + n'++ = 0 := by
+        rw [Nat.mul_succ] at eq
+        grind
+      replace weired : (n'++ * m') = 0 ∧ n'++ = 0 := by
+        exact corollary_2_2_9 weird
+      rcases weired with ⟨a, m'succ_eq_0⟩
+      exact (iff_false_intro h₁).mp m'succ_eq_0
+
+/-- Lemma 2.3.3 (Positive natural numbers have no zero divisors) / Exercise 2.3.2.
+    Compare with Mathlib's {name}`Nat.mul_eq_zero`.  -/
+lemma Nat.mul_eq_zero (n m: Nat) : n * m = 0 ↔ n = 0 ∨ m = 0 := by
+  constructor
+  · intro nm
+    by_contra eq
+    simp at eq
+    rcases eq with ⟨n0, m0⟩
+    replace n0 : n.IsPos := by simp ; grind
+    replace m0 : m.IsPos := by simp ; grind
+    have : (n * m).IsPos := by exact pos_mul_pos n0 m0
+    grind
+  · rintro ⟨_, _⟩
+    · exact zero_mul m
+    · expose_names; rw [h] ; exact mul_zero n
 
 end section_02_3
 
