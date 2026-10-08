@@ -817,6 +817,23 @@ lemma Nat.mul_eq_zero (n m: Nat) : n * m = 0 ↔ n = 0 ∨ m = 0 := by
     · exact zero_mul m
     · expose_names; rw [h] ; exact mul_zero n
 
+/-- Distributive law -/
+lemma proposition_2_3_4 {a b c : Nat} : a * (b + c) = a * b + a * c := by
+  induction c with
+  | zero => simp [Nat.mul_zero a]
+  | succ c' ih =>
+    rw [lemma_2_2_3 b c']
+    rw [Nat.mul_succ, ih]
+    rw [Nat.mul_succ]
+    exact proposition_2_2_5
+
+/-- Distributive law from right -/
+lemma proposition_2_3_4' {a b c : Nat} : (b + c) * a = b * a + c * a := by
+  rw [Nat.mul_comm]
+  rw [proposition_2_3_4]
+  rw (occs := .pos [1]) [Nat.mul_comm]
+  rw (occs := .pos [2]) [Nat.mul_comm]
+
 end section_02_3
 
 end Chapter2
