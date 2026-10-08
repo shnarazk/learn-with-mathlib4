@@ -1,0 +1,2 @@
+- After each commit, run `git push local <branch-name>`
+- start commit messages with one of 'feat', 'fix', 'chore', 'refactor', 'WIP'. 'WIP' is used for comit with imcomplete changes.
