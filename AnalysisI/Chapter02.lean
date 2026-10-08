@@ -817,7 +817,7 @@ lemma Nat.mul_eq_zero (n m: Nat) : n * m = 0 ↔ n = 0 ∨ m = 0 := by
     · exact zero_mul m
     · expose_names; rw [h] ; exact mul_zero n
 
-/-- Distributive law -/
+/-- Left distributivity of multiplication over addition: `a * (b + c) = a * b + a * c`. -/
 lemma proposition_2_3_4 {a b c : Nat} : a * (b + c) = a * b + a * c := by
   induction c with
   | zero => simp [Nat.mul_zero a]
@@ -827,7 +827,7 @@ lemma proposition_2_3_4 {a b c : Nat} : a * (b + c) = a * b + a * c := by
     rw [Nat.mul_succ]
     exact proposition_2_2_5
 
-/-- Distributive law from right -/
+/-- Right distributivity of multiplication over addition: `(b + c) * a = b * a + c * a`. -/
 lemma proposition_2_3_4' {a b c : Nat} : (b + c) * a = b * a + c * a := by
   rw [Nat.mul_comm]
   rw [proposition_2_3_4]
