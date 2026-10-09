@@ -423,29 +423,100 @@ theorem proposition_2_2_12_f : ∀ a b : Nat, a < b ↔ ∃ d : Nat, Nat.IsPos d
         exact proposition_2_2_6 (id (Eq.symm h))
       grind
 
+/-- Order is transitive -/
+theorem proposition_2_2_12_b' {a b c : Nat} : a > b ∧ b > c → a > c := by
+  intro abac
+  -- こうやって≥, >を分解する（これしかない?)
+  rcases abac with ⟨⟨a_ge_b, a_ne_b⟩,  ⟨b_ge_c, b_ne_c⟩⟩
+  refine (proposition_2_2_12_f c a).mpr ?_
+  · rcases a_ge_b with ⟨x, ab⟩
+    rcases b_ge_c with ⟨y, bc⟩
+    use (x + y)
+    constructor
+    · refine proposition_2_2_8 ?_
+      · by_contra this
+        simp at this
+        grind
+    · grind
+
+theorem proposition_2_2_12_g {a b : Nat} : a ≤ b ↔ a < b ∨ a = b := by
+  constructor
+  · intro le
+    rcases le with ⟨c, p⟩
+    match c with
+    | .zero => simp at p ; grind
+    | c'++ =>
+      left
+      refine (proposition_2_2_12_e a b).mpr ?_
+      · change ∃ c, a++ + c = b
+        use c'
+        rw [lemma_2_2_3, proposition_2_2_4, ← lemma_2_2_3, proposition_2_2_4] at p
+        grind
+  · intro p
+    cases p <;> expose_names
+    · rcases h with ⟨e, p⟩
+      grind
+    · simp [h]
+      exact proposition_2_2_12_a b
+
+
+/-- 次の命題が難しいので補助定理を証明しておく。 -/
+lemma succ_gt_self {a : Nat} : a++ > a := by
+  exact (proposition_2_2_12_e a (a++)).mpr (proposition_2_2_12_a (a++))
+
 /-- Trichotomy of order for natural numbers
 trichotomy とは a division into three categories。
 -/
-theorem proposition_2_2_13 : ∀ a b : Nat,
-    (¬ a < b ∨   a = b ∨ ¬ a > b) ∧
-    (  a < b ∨ ¬ a = b ∨ ¬ a > b) ∧
-    (¬ a < b ∨ ¬ a = b ∨   a > b) := by
+theorem proposition_2_2_13 {a b : Nat} : a < b ∨ a = b ∨ a > b := by
+  induction a with
+  | zero =>
+    simp
+    match b with
+    | .zero => simp
+    | b'++ => left ; exact compareOfLessAndEq_eq_lt.mp rfl
+  | succ a' ih =>
+    cases ih <;> expose_names
+    · apply (proposition_2_2_12_e a' b).mp at h
+      apply proposition_2_2_12_g.mp at h
+      grind
+    · cases h <;> expose_names
+      · right ; right
+        rw [h]
+        change b < b++;
+        exact succ_gt_self
+      · right ; right
+        have : a'++ > a' := by exact succ_gt_self
+        apply proposition_2_2_12_b' ⟨this, h⟩
+
+@[grind .]
+theorem self_not_lt : ∀ a : Nat, ¬a < a := by
+  intro a
+  by_contra h
+  rcases h with ⟨c, p⟩
+  contradiction
+
+theorem self_not_gt : ∀ a : Nat, ¬a > a := fun a ↦ self_not_lt a
+
+theorem not_lt_eq_ge {a b : Nat} : ¬a < b → a ≥ b := by
+  intro not_lt
+  change b ≤ a
+  apply proposition_2_2_12_g.mpr
+  by_contra ha
+  replace ha : ¬b < a ∧ ¬a = b := by grind
+  rcases ha with ⟨not_gt, not_eq⟩
+  replace not_gt : ¬a > b := by grind
+  have := @proposition_2_2_13 a b
+  grind
+
+theorem corollary_2_2_13' : ∀ a b : Nat, a ≠ b ↔ a < b ∨ a > b := by
   intro a b
-  by_cases a_eq_b : a = b
-  · grind
-  · simp [a_eq_b]
-    by_contra
-    simp at this
-    rcases this with ⟨p1, p2⟩
-    obtain ⟨c1', p1'⟩ := p1
-    obtain ⟨c1, q1⟩ := c1'
-    obtain ⟨c2', p2'⟩ := p2
-    obtain ⟨c2, q2⟩ := c2'
-    rw [← q1] at q2
-    replace q2 : a + (c1 + c2) = a + 0 := by grind
-    replace q2 : c1 + c2 = 0 := by exact proposition_2_2_6 q2
-    have : c1 = 0 ∧ c2 = 0 := by exact corollary_2_2_9 q2
+  constructor
+  · intro h
+    have := @proposition_2_2_13 a b
     grind
+  · intro h
+    by_contra h'
+    cases h <;> { expose_names ; simp [h'] at h ; grind }
 
 /-- 補助定理 -/
 lemma self_lt_inc : ∀ n : Nat, n < n++ := by
@@ -833,6 +904,143 @@ lemma proposition_2_3_4' {a b c : Nat} : (b + c) * a = b * a + c * a := by
   rw [proposition_2_3_4]
   rw (occs := .pos [1]) [Nat.mul_comm]
   rw (occs := .pos [2]) [Nat.mul_comm]
+
+/-- Proposition 2.3.5 (Multiplication is associtive) -/
+lemma proposition_2_3_5 {a b c : Nat} : a * (b * c) = (a * b) * c := by
+  induction c with
+  | zero => simp ; rw [mul_zero, mul_zero, mul_zero]
+  | succ c ih =>
+    rw [Nat.mul_succ]
+    rw [proposition_2_3_4]
+    rw [Nat.mul_succ]
+    rw [ih]
+
+/-- Proposition 2.3.6 のための補助定理 -/
+lemma mul_eq_if_eq {a b c : Nat} : a = b → a * c = b * c := by
+  intro a_eq_b
+  simp [a_eq_b]
+
+/-- Proposition 2.3.6 のための補助定理 -/
+lemma lt_def {a b : Nat} : a < b ↔ ∃ c : Nat, c > 0 ∧ a + c = b := by
+  constructor
+  · intro le
+    apply lt_eq_le_and_ne.mp at le
+    obtain ⟨⟨d, lt⟩, eq⟩ := le
+    use d
+    constructor
+    · rw [← lt] at eq
+      match d with
+      | zero => grind
+      | succ d' => exact compareOfLessAndEq_eq_lt.mp rfl
+    · exact lt
+  · intro h
+    rcases h with ⟨e, p⟩
+    constructor
+    · change ∃ e, a + e = b
+      use e
+      grind
+    · by_contra h
+      subst h
+      rcases p with ⟨le, eq⟩
+      have : ¬e = 0 := by
+        by_contra h
+        subst h
+        rcases le with ⟨le', eq'⟩
+        grind
+      replace p : 0 = e := by
+        rw (occs := .pos [2]) [← lemma_2_2_2 a] at eq
+        apply proposition_2_2_6 at eq
+        grind
+      grind
+
+/-- Proposition 2.3.6 のための補助定理 -/
+
+lemma eq_if_mul_two_eq' {a b : Nat} : a * 2 = b * 2 → a = b := by
+  intro two
+  simp [← one_succ] at two
+  simp [Nat.mul_succ] at two
+  simp [mul_one] at two
+  have := @proposition_2_2_13 a b
+  cases this <;> expose_names
+  · rcases h with ⟨⟨c, le⟩, ne⟩
+    rw [← le] at two
+    rw (occs := .pos [1]) [proposition_2_2_5] at two
+    rw (occs := .pos [2]) [← proposition_2_2_5] at two
+    rw (occs := .pos [4]) [proposition_2_2_4] at two
+    rw (occs := .pos [1]) [proposition_2_2_5] at two
+    rw (occs := .pos [1]) [← proposition_2_2_5] at two
+    rw (occs := .pos [1]) [← lemma_2_2_2 (a + a)] at two
+    apply proposition_2_2_6 at two
+    replace two : c + c = 0 := by exact Eq.symm (axiom_4' (congrArg succ two))
+    apply corollary_2_2_9 at two
+    replace two := two.left
+    subst two
+    simp at *
+    grind
+  · cases h <;> expose_names
+    · grind
+    · rcases h with ⟨⟨c, le⟩, ne⟩
+      rw [← le] at two
+      rw (occs := .pos [1]) [proposition_2_2_5] at two
+      rw (occs := .pos [2]) [← proposition_2_2_5] at two
+      rw (occs := .pos [3]) [proposition_2_2_4] at two
+      rw (occs := .pos [1]) [proposition_2_2_5] at two
+      rw (occs := .pos [1]) [← proposition_2_2_5] at two
+      rw (occs := .pos [2]) [← lemma_2_2_2 (b + b)] at two
+      apply proposition_2_2_6 at two
+      apply corollary_2_2_9 at two
+      replace two := two.left
+      subst two
+      simp at *
+      grind
+
+-- lemma eq_if_mul_eq' {a b c : Nat} : a * c++ = b * c++ → a * c = b * c := by
+--   intro h
+--   induction c with
+--   | zero => simp [Nat.zero_succ, Nat.mul_one] at h ; grind
+--   | succ c' ih =>
+--     rw (occs := .pos [1]) [Nat.mul_succ] at h
+--     rw (occs := .pos [2]) [Nat.mul_succ] at h
+--     done
+--     rw [Nat.mul_succ a c', Nat.mul_succ b c] at h
+--     done
+--     sorry
+
+/-- Proposition 2.3.6 (Multiplication preserves order) -/
+lemma proposition_2_3_6 {a b c : Nat} {h : a < b} {c_is_pos : Nat.IsPos c} :
+    a * c < b * c := by
+  rcases h with ⟨⟨d, ad_eq_b⟩, a_ne_b⟩
+  replace ad_eq_b : b = a + d := by grind
+  subst ad_eq_b
+  rw (occs := .pos [1]) [← lemma_2_2_2 a] at a_ne_b
+  replace a_ne_b : ¬ 0 = d := by
+    by_contra h
+    replace h : d = 0 := by grind
+    subst h
+    contradiction
+  replace a_ne_b : Nat.IsPos d := by
+    grind
+  replace a_ne_b : Nat.IsPos (a + d) := by
+    sorry
+  -- apply Nat.pos_mul_pos c
+  done
+  match d with
+  | .zero => simp at a_ne_b
+  | d'  =>
+    done
+    apply Nat.pos_mul_pos c
+    done
+  rw [lt_def]
+  use d * c
+  constructor
+  · done
+    at a_ne_b
+    sorry
+  · rw [← ad_eq_b]
+    rw (occs := .pos [1]) [Nat.mul_comm]
+    rw (occs := .pos [2]) [Nat.mul_comm]
+    rw [← proposition_2_3_4]
+    rw [Nat.mul_comm]
 
 end section_02_3
 
