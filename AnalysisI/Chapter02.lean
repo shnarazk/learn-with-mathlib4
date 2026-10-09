@@ -1012,35 +1012,25 @@ lemma proposition_2_3_6 {a b c : Nat} {h : a < b} {c_is_pos : Nat.IsPos c} :
   rcases h with ⟨⟨d, ad_eq_b⟩, a_ne_b⟩
   replace ad_eq_b : b = a + d := by grind
   subst ad_eq_b
-  rw (occs := .pos [1]) [← lemma_2_2_2 a] at a_ne_b
-  replace a_ne_b : ¬ 0 = d := by
-    by_contra h
-    replace h : d = 0 := by grind
-    subst h
-    contradiction
-  replace a_ne_b : Nat.IsPos d := by
-    grind
-  replace a_ne_b : Nat.IsPos (a + d) := by
-    sorry
-  -- apply Nat.pos_mul_pos c
-  done
-  match d with
-  | .zero => simp at a_ne_b
-  | d'  =>
-    done
-    apply Nat.pos_mul_pos c
-    done
-  rw [lt_def]
-  use d * c
-  constructor
-  · done
-    at a_ne_b
-    sorry
-  · rw [← ad_eq_b]
-    rw (occs := .pos [1]) [Nat.mul_comm]
-    rw (occs := .pos [2]) [Nat.mul_comm]
-    rw [← proposition_2_3_4]
-    rw [Nat.mul_comm]
+  rw [proposition_2_3_4']
+  have : Nat.IsPos (d * c) := by
+    have : Nat.IsPos d := by
+      by_contra h
+      replace h : d = 0 := by simp at h ; grind
+      subst h
+      simp at a_ne_b
+    exact pos_mul_pos this c_is_pos
+  refine lt_eq_le_and_ne.mpr ?_
+  · constructor
+    · change ∃ e, a * c + e = a * c + d * c
+      use (d * c)
+    · by_contra h
+      replace h : d * c = 0 := by
+        rw (occs := .pos [1]) [← lemma_2_2_2 (a * c)] at h
+        apply proposition_2_2_6 at h
+        grind
+      replace h : ¬ Nat.IsPos (d * c) := by grind
+      contradiction
 
 end section_02_3
 
