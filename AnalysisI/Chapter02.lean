@@ -994,17 +994,49 @@ lemma eq_if_mul_two_eq' {a b : Nat} : a * 2 = b * 2 → a = b := by
       simp at *
       grind
 
--- lemma eq_if_mul_eq' {a b c : Nat} : a * c++ = b * c++ → a * c = b * c := by
---   intro h
---   induction c with
---   | zero => simp [Nat.zero_succ, Nat.mul_one] at h ; grind
---   | succ c' ih =>
---     rw (occs := .pos [1]) [Nat.mul_succ] at h
---     rw (occs := .pos [2]) [Nat.mul_succ] at h
---     done
---     rw [Nat.mul_succ a c', Nat.mul_succ b c] at h
---     done
---     sorry
+lemma eq_if_mul_eq' {a b c : Nat} : a * c++ = b * c++ → a * c = b * c := by
+  intro h
+  induction c with
+  | zero => simp [Nat.zero_succ, Nat.mul_one] at h ; grind
+  | succ c' ih =>
+    rw (occs := .pos [1]) [Nat.mul_succ] at h
+    rw (occs := .pos [2]) [Nat.mul_succ] at h
+    have := @proposition_2_2_13 a b
+    cases this <;> expose_names
+    · rcases h_1 with ⟨⟨d, ad_eq_b⟩, a_ne_b⟩
+      replace ad_eq_b : b = a + d := by
+        exact axiom_4' (congrArg succ (id (Eq.symm ad_eq_b)))
+      subst ad_eq_b
+      rw [proposition_2_3_4'] at h
+      rw (occs := .pos [1]) [proposition_2_2_5] at h
+      apply proposition_2_2_6 at h
+      rw [proposition_2_2_4] at h
+      rw (occs := .pos [1]) [← lemma_2_2_2 a] at h
+      rw (occs := .pos [1]) [proposition_2_2_5] at h
+      apply proposition_2_2_6 at h
+      replace h : d = 0 ∧ d * c'++ = 0 := by
+        exact corollary_2_2_9 (id (Eq.symm h))
+      replace h : d = 0 := by grind
+      subst h
+      simp at a_ne_b
+    · cases h_1 <;> expose_names
+      · subst h_1
+        grind
+      · rcases h_1 with ⟨⟨d, a_eq_bd⟩, a_ne_b⟩
+        replace a_eq_bd : a = b + d := by
+          exact axiom_4' (congrArg succ (id (Eq.symm a_eq_bd)))
+        subst a_eq_bd
+        rw [proposition_2_3_4'] at h
+        rw (occs := .pos [1]) [proposition_2_2_5] at h
+        rw (occs := .pos [2]) [proposition_2_2_4] at h
+        rw (occs := .pos [1]) [proposition_2_2_5] at h
+        rw (occs := .pos [1]) [← proposition_2_2_5] at h
+        rw (occs := .pos [2]) [← lemma_2_2_2 (b * c'++ + b)] at h
+        apply proposition_2_2_6 at h
+        replace h : d = 0 ∧ d * c'++ = 0 := corollary_2_2_9 h
+        replace h : d = 0 := by grind
+        subst h
+        simp at a_ne_b
 
 /-- Proposition 2.3.6 (Multiplication preserves order) -/
 lemma proposition_2_3_6 {a b c : Nat} {h : a < b} {c_is_pos : Nat.IsPos c} :
