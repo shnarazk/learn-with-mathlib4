@@ -1064,6 +1064,20 @@ lemma proposition_2_3_6 {a b c : Nat} {h : a < b} {c_is_pos : Nat.IsPos c} :
       replace h : ¬ Nat.IsPos (d * c) := by grind
       contradiction
 
+/-- Cancellation law -/
+lemma corollary_2_3_7 {a b c : Nat} (h : a * c = b * c) (c_ne_0 : c ≠ 0) : a = b := by
+  match c with
+  | .zero => contradiction
+  | c++ =>
+    induction c with
+    | zero => simp [zero_succ, mul_one] at h ; grind
+    | succ c' =>
+      expose_names
+      apply eq_if_mul_eq' at h
+      have : c'++ ≠ 0 := succ_ne c'
+      replace a_ih := a_ih h this
+      grind
+
 end section_02_3
 
 end Chapter2
