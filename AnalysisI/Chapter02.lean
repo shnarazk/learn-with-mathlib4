@@ -190,6 +190,10 @@ lemma lemma_2_2_3 : ∀ n m : Nat, n + (m++) = (n + m)++ := by
   intro n m
   exact lemma_2_2_3' n m
 
+lemma add1_eq_succ {a : Nat} : a + 1 = a++ := by
+  have : 0++ = 1 := by rfl
+  simp [← this]
+
 /-! As a paricular corollary of Lemma 2.2.2 and Lemma 2.2.3 -/
 @[grind =, simp]
 lemma add1_is_inc : ∀ n : Nat, n + 1 = n++ := by
@@ -533,6 +537,22 @@ lemma self_lt_inc : ∀ n : Nat, n < n++ := by
     injection this
 
 /-- 補助定理 -/
+lemma zero_le_inc : ∀ n : Nat, 0 ≤ n++ := by
+  intro n
+  change ∃ d, 0 + d = n++;
+  use (n++)
+  exact Nat.zero_add (n++)
+
+/-- 補助定理 -/
+lemma zero_lt_inc : ∀ n : Nat, 0 < n++ := by
+  intro n
+  change 0 ≤ n++ ∧ 0 ≠ n++;
+  constructor
+  · exact zero_le_inc n
+  · by_contra
+    injection this
+
+/-- 補助定理 -/
 lemma lt_zero_eq_zero {n : Nat} : n ≤ 0 → n = 0 := by
   rintro ⟨d, p⟩
   replace p : n = 0 ∧ d = 0 := by
@@ -564,6 +584,34 @@ lemma lt_inc_eq_le {n m : Nat} : n < m++ ↔ n ≤ m := by
       rw (occs := .pos [1]) [← lemma_2_2_2 n] at this
       apply proposition_2_2_6 at this
       contradiction
+
+/-- 補助定理 -/
+lemma lt_eq_inc_le {n m : Nat} : n < m ↔ n++ ≤ m := by
+  constructor
+  · intro n_lt_m
+    change ∃ c, n++ + c = m;
+    obtain ⟨⟨d, n_le_m⟩, n_eq_m⟩ := n_lt_m
+    induction d with
+    | zero => simp at n_le_m ; grind
+    | succ d d_gt_0 =>
+      rw (occs := .pos [1]) [lemma_2_2_3] at n_le_m
+      replace n_le_m : n++ + d = m := by grind
+      use d
+  · rintro ⟨d, n_le_m⟩
+    rw [proposition_2_2_4] at n_le_m
+    rw [lemma_2_2_3] at n_le_m
+    rw [proposition_2_2_4] at n_le_m
+    rw [← lemma_2_2_3] at n_le_m
+    change n ≤ m ∧ n ≠ m;
+    constructor
+    · change ∃ c, n + c = m;
+      rw [← n_le_m]
+      use (d++)
+    · by_contra
+      rw [← n_le_m] at this
+      rw (occs := .pos [1]) [← lemma_2_2_2 n] at this
+      apply proposition_2_2_6 at this
+      injection this
 
 /-- 補助定理 -/
 lemma lt_is_le {a b : Nat} : a < b → a ≤ b := by
@@ -1064,7 +1112,7 @@ lemma proposition_2_3_6 {a b c : Nat} {h : a < b} {c_is_pos : Nat.IsPos c} :
       replace h : ¬ Nat.IsPos (d * c) := by grind
       contradiction
 
-/-- Cancellation law -/
+/-- Cancellation law (a virtual division) -/
 lemma corollary_2_3_7 {a b c : Nat} (h : a * c = b * c) (c_ne_0 : c ≠ 0) : a = b := by
   match c with
   | .zero => contradiction
@@ -1077,6 +1125,53 @@ lemma corollary_2_3_7 {a b c : Nat} (h : a * c = b * c) (c_ne_0 : c ≠ 0) : a =
       have : c'++ ≠ 0 := succ_ne c'
       replace a_ih := a_ih h this
       grind
+
+/-- Proposition 2.3.9 (Euclid's division lemma)
+- hint: fix q and induct on n.
+-/
+lemma proposition_2_3_9 {n q : Nat} {q_is_pos : Nat.IsPos q} :
+    ∃ m r : Nat, 0 ≤ r ∧ r < q ∧ n = m * q + r := by
+  have q_gt_0 : q > 0 := by
+    simp [Nat.IsPos] at q_is_pos
+    match q with
+    | .zero => contradiction
+    | q++ => exact compareOfLessAndEq_eq_lt.mp rfl
+  induction n with
+  | zero =>
+    use 0, 0
+    constructor
+    · exact proposition_2_2_12_a 0
+    · constructor
+      · grind
+      · simp [Nat.zero_mul]
+  | succ n ih =>
+    rcases ih with ⟨m, r, ⟨r_ge_0, r_lt_q, ih'⟩⟩
+    by_cases r1_eq_q : r++ = q
+    · use (m+1), 0
+      constructor
+      · exact proposition_2_2_12_a 0
+      · constructor
+        · grind
+        · rw [ih']
+          rw [← lemma_2_2_3]
+          rw [r1_eq_q]
+          rw [lemma_2_2_2 ((m + 1) * q)]
+          rw [add1_eq_succ]
+          rw [succ_mul]
+    · use m, (r+1)
+      constructor
+      · rw [add1_eq_succ]
+        exact zero_le_inc r
+      · constructor
+        · rw [lt_eq_inc_le] at r_lt_q
+          rw [add1_eq_succ]
+          change r++ ≤ q ∧ r++ ≠ q
+          constructor
+          · grind
+          · exact Ne.symm fun a ↦ r1_eq_q (id (Eq.symm a))
+        · rw [← proposition_2_2_5]
+          rw [← ih']
+          exact Eq.symm add1_eq_succ
 
 end section_02_3
 
