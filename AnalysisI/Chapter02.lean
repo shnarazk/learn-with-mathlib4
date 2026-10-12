@@ -1173,6 +1173,60 @@ lemma proposition_2_3_9 {n q : Nat} {q_is_pos : Nat.IsPos q} :
           rw [← ih']
           exact Eq.symm add1_eq_succ
 
+/-! Definition 2.3.11 (Exponentional for natural numbers) -/
+abbrev Nat.pow (m n: Nat) : Nat := Nat.recurse (fun _ prod ↦ prod * m) 1 n
+
+instance Nat.instPow : HomogeneousPow Nat where
+  pow := Nat.pow
+
+/-- Definition 2.3.11 (Exponentiation for natural numbers)
+Compare with Mathlib's {name}`Nat.pow_zero` -/
+@[simp]
+theorem Nat.pow_zero (m: Nat) : m ^ (0:Nat) = 1 := recurse_zero (fun _ prod ↦ prod * m) _
+
+/-- Definition 2.3.11 (Exponentiation for natural numbers) -/
+@[simp]
+theorem Nat.zero_pow_zero : (0:Nat) ^ 0 = 1 := recurse_zero (fun _ prod ↦ prod * 0) _
+
+/-- Definition 2.3.11 (Exponentiation for natural numbers)
+Compare with Mathlib's {name}`Nat.pow_succ` -/
+theorem Nat.pow_succ (m n: Nat) : (m:Nat) ^ n++ = m^n * m :=
+  recurse_succ (fun _ prod ↦ prod * m) _ _
+
+/-- Compare with Mathlib's {name}`Nat.pow_one` -/
+@[simp]
+theorem Nat.pow_one (m: Nat) : m ^ (1:Nat) = m := by
+  rw [←zero_succ, pow_succ]
+  simp
+  exact one_mul m
+
+lemma mul_self_eq_pow_2 {n : Nat} : n * n = n ^ 2 := by
+  exact recurse_zero (fun a a_1 ↦ n) (n * n)
+
+/-- Exercise 2.3.4 -/
+theorem Nat.sq_add_eq (a b: Nat) :
+    (a + b) ^ (2 : Nat) = a ^ (2 : Nat) + 2 * a * b + b ^ (2 : Nat) := by
+  rw (occs := .pos [1]) [← one_succ]
+  rw [Nat.pow_succ]
+  rw (occs := .pos [1]) [← zero_succ]
+  rw [Nat.pow_succ, Nat.pow_zero, Nat.one_mul]
+  rw [proposition_2_3_4']
+  rw [proposition_2_3_4]
+  rw [proposition_2_3_4]
+  rw [← proposition_2_2_5]
+  rw (occs := .pos [3]) [Nat.mul_comm]
+  rw [← lemma_2_2_2 (a * a)]
+  rw [proposition_2_2_5]
+  rw [proposition_2_2_5]
+  rw [proposition_2_2_5]
+  rw (occs := .pos [2]) [← proposition_2_2_5]
+  rw (occs := .pos [2]) [← proposition_2_2_5]
+  rw [← Nat.two_mul (a * b)]
+  rw [← proposition_2_2_5]
+  rw [proposition_2_3_5]
+  rw [@mul_self_eq_pow_2 a]
+  rw [@mul_self_eq_pow_2 b]
+
 end section_02_3
 
 end Chapter2
