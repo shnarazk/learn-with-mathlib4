@@ -57,13 +57,13 @@ lemma Nat.two_succ  : 2++ = 3 := by rfl
 /--
 Axiom 2.3: ∀ n ∈ ℕ, n++ ≠ 0
 -/
-theorem Nat.succ_ne (n : Nat) : n++ ≠ 0 := by
+theorem Nat.succ_ne {n : Nat} : n++ ≠ 0 := by
   by_contra h -- n++ = zero と仮定
   injection h -- 両辺のconstructorが同じであることを確認
 
 example : (4 : Nat) ≠ 0 := by
   change 3++ ≠ 0 -- goalを変更
-  exact Nat.succ_ne _
+  exact Nat.succ_ne
 
 /-- Axiom 2.5 (Principle of mathematical induction). The {tactic}`induction` (or
   {tactic}`induction'`) tactic in Mathlib serves as a substitute for this axiom.  -/
@@ -89,24 +89,24 @@ public abbrev Nat.recurse (f: Nat → Nat → Nat) (c: Nat) : Nat → Nat :=
 theorem Nat.recurse_zero (f: Nat → Nat → Nat) (c: Nat) : Nat.recurse f c 0 = c := by rfl
 
 /-- Proposition 2.1.16 (recursive definitions). Compare with Mathlib's {name}`Nat.rec_add_one`. -/
-theorem Nat.recurse_succ (f: Nat → Nat → Nat) (c: Nat) (n: Nat) :
+theorem Nat.recurse_succ (f: Nat → Nat → Nat) {c: Nat} {n: Nat} :
     recurse f c (n++) = f n (recurse f c n) := by rfl
 
 /-- Proposition 2.1.16 (recursive definitions). -/
-theorem Nat.eq_recurse (f: Nat → Nat → Nat) (c: Nat) (a: Nat → Nat) :
+theorem Nat.eq_recurse {c: Nat} {a: Nat → Nat} (f: Nat → Nat → Nat) :
     (a 0 = c ∧ ∀ n, a (n++) = f n (a n)) ↔ a = recurse f c := by
   constructor
   . intro ⟨ h0, hsucc ⟩
     -- this proof is written to follow the structure of the original text.
     apply funext; apply induction
-    . exact h0
-    intro n hn
-    rw [hsucc n, recurse_succ, hn]
-  intro h
-  rw [h]
-  constructor -- could also use `split_ands` or `and_intros` here
-  . exact recurse_zero _ _
-  exact recurse_succ _ _
+    · exact h0
+    · intro n hn
+      rw [hsucc n, recurse_succ, hn]
+  · intro h
+    rw [h]
+    constructor -- could also use `split_ands` or `and_intros` here
+    . exact recurse_zero _ _
+    · exact fun n ↦ recurse_zero f (f n (recurse f c n))
 
 /-- Proposition 2.1.16 (recursive definitions). -/
 theorem Nat.recurse_uniq (f: Nat → Nat → Nat) (c: Nat) :
@@ -114,9 +114,9 @@ theorem Nat.recurse_uniq (f: Nat → Nat → Nat) (c: Nat) :
   apply ExistsUnique.intro (recurse f c)
   . constructor -- could also use `split_ands` or `and_intros` here
     . exact recurse_zero _ _
-    . exact recurse_succ _ _
+    . exact fun n ↦ recurse_zero f (f n (recurse f c n))
   intro a
-  exact (eq_recurse _ _ a).mp
+  exact (eq_recurse _).mp
 
 theorem Nat.axiom_4 {a b : Nat} : a ≠ b → a++ ≠ b++ := by
   intro a_ne_b
@@ -162,8 +162,7 @@ example : ∀ n m : Nat, ((n + m) : Nat) = Nat.add n m := by
 
 /-- 0は(+)の単位元 -/
 @[grind =, simp]
-lemma lemma_2_2_2 : ∀ n : Nat, n + 0 = n := by
-  intro n
+lemma lemma_2_2_2 {n : Nat} : n + 0 = n := by
   induction n with
   | zero => rfl
   | succ n' ih =>
@@ -172,7 +171,7 @@ lemma lemma_2_2_2 : ∀ n : Nat, n + 0 = n := by
 
 /-- Compare with Mathlib's {name}`Nat.zero_add`. -/
 @[simp]
-theorem Nat.zero_add (m: Nat) : 0 + m = m := recurse_zero (fun _ sum ↦ sum++) _
+theorem Nat.zero_add {m: Nat} : 0 + m = m := recurse_zero (fun _ sum ↦ sum++) _
 
 /-- (++)と`Nat.add`の交換 -/
 @[grind =, simp]
@@ -198,7 +197,7 @@ lemma add1_eq_succ {a : Nat} : a + 1 = a++ := by
 @[grind =, simp]
 lemma add1_is_inc : ∀ n : Nat, n + 1 = n++ := by
   intro n
-  have : n = n + 0 := by exact Eq.symm (lemma_2_2_2 n)
+  have : n = n + 0 := by exact Eq.symm (lemma_2_2_2)
   rw (occs := .pos [2]) [this]
   rw [← lemma_2_2_3]
   replace : 0++ = 1 := by rfl
@@ -267,12 +266,13 @@ lemma proposition_2_2_6' {a b : Nat} : a = b → ∀ c, a + c = b + c := by
 @[grind =, simp]
 def Nat.IsPos : Nat → Prop := fun n ↦ n ≠ 0
 
+@[simp]
 lemma proposition_2_2_8 {a b : Nat} : Nat.IsPos a → Nat.IsPos (a + b) := by
   intro a_is_positive
   induction b with
   | zero => grind
   | succ b ih =>
-    have : (a + b)++ ≠ 0 := by exact Nat.succ_ne (a + b)
+    have : (a + b)++ ≠ 0 := by exact Nat.succ_ne
     grind
 
 lemma corollary_2_2_9 {a b : Nat} : a + b = 0 → a = 0 ∧ b = 0 := by
@@ -306,7 +306,7 @@ instance Nat.instLE : LE Nat where
 instance Nat.instDecidableLE : DecidableLE Nat
   | .zero, b => isTrue ⟨b, by
       calc (0 : Nat) + b = b + 0 := proposition_2_2_4 0 b
-        _ = b := lemma_2_2_2 b⟩
+        _ = b := lemma_2_2_2⟩
   | a++, .zero => isFalse (by rintro ⟨c, hc⟩ ; grind)
   | a++, b++ =>
       match Nat.instDecidableLE a b with
@@ -325,8 +325,8 @@ instance Nat.instDecidableLT : DecidableLT Nat :=
   fun a b => inferInstanceAs (Decidable (a ≤ b ∧ a ≠ b))
 
 /-- Order is reflective -/
-theorem proposition_2_2_12_a : ∀ a : Nat, a ≥ a := by
-  intro a
+@[simp]
+theorem proposition_2_2_12_a {a : Nat} : a ≥ a := by
   change ∃ c : Nat, a + c = a
   use 0
   grind
@@ -374,7 +374,7 @@ theorem inc_add_ne_self : ∀ n a : Nat, n + 1 + a ≠ n := by
   intro n a
   by_contra
   replace : 1 + a = 0 := by
-    rw (occs := .pos [2]) [← lemma_2_2_2 n] at this
+    rw (occs := .pos [2]) [← @lemma_2_2_2 n] at this
     rw [proposition_2_2_5] at this
     apply proposition_2_2_6 at this
     grind
@@ -423,11 +423,12 @@ theorem proposition_2_2_12_f : ∀ a b : Nat, a < b ↔ ∃ d : Nat, Nat.IsPos d
     · by_contra
       have : e = 0 := by
         simp [this] at h
-        rw (occs := .pos [1]) [← lemma_2_2_2 b] at h
+        rw (occs := .pos [1]) [← @lemma_2_2_2 b] at h
         exact proposition_2_2_6 (id (Eq.symm h))
       grind
 
 /-- Order is transitive -/
+@[simp]
 theorem proposition_2_2_12_b' {a b c : Nat} : a > b ∧ b > c → a > c := by
   intro abac
   -- こうやって≥, >を分解する（これしかない?)
@@ -461,12 +462,10 @@ theorem proposition_2_2_12_g {a b : Nat} : a ≤ b ↔ a < b ∨ a = b := by
     · rcases h with ⟨e, p⟩
       grind
     · simp [h]
-      exact proposition_2_2_12_a b
-
 
 /-- 次の命題が難しいので補助定理を証明しておく。 -/
 lemma succ_gt_self {a : Nat} : a++ > a := by
-  exact (proposition_2_2_12_e a (a++)).mpr (proposition_2_2_12_a (a++))
+  exact (proposition_2_2_12_e a (a++)).mpr proposition_2_2_12_a
 
 /-- Trichotomy of order for natural numbers
 trichotomy とは a division into three categories。
@@ -531,7 +530,7 @@ lemma self_lt_inc : ∀ n : Nat, n < n++ := by
     use 1
     exact add1_is_inc n
   · by_contra
-    rw (occs := .pos [1]) [← lemma_2_2_2 n] at this
+    rw (occs := .pos [1]) [← @lemma_2_2_2 n] at this
     rw [← add1_is_inc] at this
     apply proposition_2_2_6 at this
     injection this
@@ -541,7 +540,7 @@ lemma zero_le_inc : ∀ n : Nat, 0 ≤ n++ := by
   intro n
   change ∃ d, 0 + d = n++;
   use (n++)
-  exact Nat.zero_add (n++)
+  exact Nat.zero_add
 
 /-- 補助定理 -/
 lemma zero_lt_inc : ∀ n : Nat, 0 < n++ := by
@@ -581,7 +580,7 @@ lemma lt_inc_eq_le {n m : Nat} : n < m++ ↔ n ≤ m := by
     · by_contra
       rw [← n_le_m] at this
       rw (occs := .pos [1]) [← lemma_2_2_3] at this
-      rw (occs := .pos [1]) [← lemma_2_2_2 n] at this
+      rw (occs := .pos [1]) [← @lemma_2_2_2 n] at this
       apply proposition_2_2_6 at this
       contradiction
 
@@ -609,7 +608,7 @@ lemma lt_eq_inc_le {n m : Nat} : n < m ↔ n++ ≤ m := by
       use (d++)
     · by_contra
       rw [← n_le_m] at this
-      rw (occs := .pos [1]) [← lemma_2_2_2 n] at this
+      rw (occs := .pos [1]) [← @lemma_2_2_2 n] at this
       apply proposition_2_2_6 at this
       injection this
 
@@ -644,7 +643,7 @@ lemma le_eq_lt_and_eq {n m : Nat} {P : Prop} : (n ≤ m → P) ↔ (n < m → P)
           use c++;
         · by_contra
           rw [← nm] at this
-          rw (occs := .pos [1]) [← lemma_2_2_2 n] at this
+          rw (occs := .pos [1]) [← @lemma_2_2_2 n] at this
           apply proposition_2_2_6 at this
           contradiction
       grind
@@ -686,7 +685,7 @@ theorem proposition_2_2_14 : ∀ m₀ : Nat, ∀ P : Nat -> Prop,
     grind
   rcases hm' with ⟨c, hm'⟩
   suffices key : ∀ c, ∀ m' ≥ m₀, m' ≤ m₀ + c → P m' by
-    have := key c (m₀ + c) (by grind) (proposition_2_2_12_a (m₀ + c))
+    have := key c (m₀ + c) (by grind) proposition_2_2_12_a
     grind
   -- この時点でgoalはhをより一般化したものになっている。従って帰納法が使いやすい
   intro c
@@ -713,7 +712,7 @@ theorem proposition_2_2_14 : ∀ m₀ : Nat, ∀ P : Nat -> Prop,
       rcases hm' with ⟨c1, hm''⟩
       rcases hle with ⟨c2, hle⟩
       rw [← hm''] at hle
-      rw (occs := .pos [2]) [← lemma_2_2_2 m₀] at hle
+      rw (occs := .pos [2]) [← @lemma_2_2_2 m₀] at hle
       rw [proposition_2_2_5] at hle
       apply proposition_2_2_6 at hle
       have : c1 = 0 ∧ c2 = 0 := by exact corollary_2_2_9 hle
@@ -725,7 +724,7 @@ theorem proposition_2_2_14 : ∀ m₀ : Nat, ∀ P : Nat -> Prop,
     rcases hlt'' with ⟨⟨c1, a⟩, ne⟩
     rcases hm'' with ⟨c2, b⟩
     rw [← b] at a
-    rw (occs := .pos [2]) [← lemma_2_2_2 m'] at a
+    rw (occs := .pos [2]) [← @lemma_2_2_2 m'] at a
     rw [proposition_2_2_5] at a
     apply proposition_2_2_6 at a
     have : c2 = 0 := by
@@ -795,7 +794,7 @@ example {n : Nat} {P : Nat → Prop} :
       · simp [c_eq_0] at le ; grind
       · left
         rw [← le]
-        rw (occs := .pos [1]) [← lemma_2_2_2 m]
+        rw (occs := .pos [1]) [← @lemma_2_2_2 m]
         refine (proposition_2_2_12_e (m + 0) (m + c)).mpr ?_
         · simp
           change ∃ d, m++ + d = m + c
@@ -853,15 +852,18 @@ instance Nat.instMul : Mul Nat where
 
 /-- Definition 2.3.1 (Multiplication of natural numbers)
 Compare with Mathlib's {name}`Nat.zero_mul` -/
+@[simp]
 theorem Nat.zero_mul (m: Nat) : 0 * m = 0 := Nat.recurse_zero (fun _ prod ↦ prod+m) _
 
 /-- Definition 2.3.1 (Multiplication of natural numbers)
 Compare with Mathlib's {name}`Nat.succ_mul` -/
-theorem Nat.succ_mul (n m: Nat) : (n++) * m = n * m + m := recurse_succ (fun _ prod ↦ prod+m) _ _
+theorem Nat.succ_mul (n m: Nat) : (n++) * m = n * m + m := recurse_succ (fun _ prod ↦ prod+m)
 
 theorem Nat.one_mul' (m : Nat) : 1 * m = 0 + m := by
   rw [←zero_succ, succ_mul, zero_mul]
+
 /-- Compare with Mathlib's {name}`Nat.one_mul` -/
+@[simp]
 theorem Nat.one_mul (m: Nat) : 1 * m = m := by
   rw [one_mul', zero_add]
 
@@ -870,11 +872,13 @@ theorem Nat.two_mul (m : Nat) : 2 * m = 0 + m + m := by
 
 /-- This lemma will be useful to prove Lemma 2.3.2.
 Compare with Mathlib's {name}`Nat.mul_zero` -/
+@[simp]
 lemma Nat.mul_zero (n : Nat) : n * 0 = 0 := by
   induction n with
   | zero      => exact zero_mul 0
   | succ n ih => rw [succ_mul, ih] ; grind
 
+@[simp]
 lemma Nat.mul_one (n : Nat) : n * 1 = n := by
   induction n with
   | zero      => exact zero_mul 0
@@ -896,7 +900,7 @@ lemma Nat.mul_succ (n m : Nat) : n * m++ = n * m + n := by
 Compare with Mathlib's {name}`Nat.mul_comm` -/
 lemma Nat.mul_comm (n m: Nat) : n * m = m * n := by
   induction m with
-  | zero => simp [zero_mul] ; exact mul_zero n
+  | zero => simp [zero_mul]
   | succ m' ih =>
     rw [Nat.mul_succ, Nat.succ_mul]
     grind
@@ -922,7 +926,7 @@ lemma Nat.pos_mul_pos {n m: Nat} (h₁: n.IsPos) (h₂: m.IsPos) :
 
 /-- Lemma 2.3.3 (Positive natural numbers have no zero divisors) / Exercise 2.3.2.
     Compare with Mathlib's {name}`Nat.mul_eq_zero`.  -/
-lemma Nat.mul_eq_zero (n m: Nat) : n * m = 0 ↔ n = 0 ∨ m = 0 := by
+lemma Nat.mul_eq_zero {n m: Nat} : n * m = 0 ↔ n = 0 ∨ m = 0 := by
   constructor
   · intro nm
     by_contra eq
@@ -956,7 +960,7 @@ lemma proposition_2_3_4' {a b c : Nat} : (b + c) * a = b * a + c * a := by
 /-- Proposition 2.3.5 (Multiplication is associtive) -/
 lemma proposition_2_3_5 {a b c : Nat} : a * (b * c) = (a * b) * c := by
   induction c with
-  | zero => simp ; rw [mul_zero, mul_zero, mul_zero]
+  | zero => simp
   | succ c ih =>
     rw [Nat.mul_succ]
     rw [proposition_2_3_4]
@@ -965,8 +969,8 @@ lemma proposition_2_3_5 {a b c : Nat} : a * (b * c) = (a * b) * c := by
 
 /-- Proposition 2.3.6 のための補助定理 -/
 lemma mul_eq_if_eq {a b c : Nat} : a = b → a * c = b * c := by
-  intro a_eq_b
-  simp [a_eq_b]
+  intro rfl
+  rfl
 
 /-- Proposition 2.3.6 のための補助定理 -/
 lemma lt_def {a b : Nat} : a < b ↔ ∃ c : Nat, c > 0 ∧ a + c = b := by
@@ -996,7 +1000,7 @@ lemma lt_def {a b : Nat} : a < b ↔ ∃ c : Nat, c > 0 ∧ a + c = b := by
         rcases le with ⟨le', eq'⟩
         grind
       replace p : 0 = e := by
-        rw (occs := .pos [2]) [← lemma_2_2_2 a] at eq
+        rw (occs := .pos [2]) [← @lemma_2_2_2 a] at eq
         apply proposition_2_2_6 at eq
         grind
       grind
@@ -1007,7 +1011,6 @@ lemma eq_if_mul_two_eq' {a b : Nat} : a * 2 = b * 2 → a = b := by
   intro two
   simp [← one_succ] at two
   simp [Nat.mul_succ] at two
-  simp [mul_one] at two
   have := @proposition_2_2_13 a b
   cases this <;> expose_names
   · rcases h with ⟨⟨c, le⟩, ne⟩
@@ -1017,7 +1020,7 @@ lemma eq_if_mul_two_eq' {a b : Nat} : a * 2 = b * 2 → a = b := by
     rw (occs := .pos [4]) [proposition_2_2_4] at two
     rw (occs := .pos [1]) [proposition_2_2_5] at two
     rw (occs := .pos [1]) [← proposition_2_2_5] at two
-    rw (occs := .pos [1]) [← lemma_2_2_2 (a + a)] at two
+    rw (occs := .pos [1]) [← @lemma_2_2_2 (a + a)] at two
     apply proposition_2_2_6 at two
     replace two : c + c = 0 := by exact Eq.symm (axiom_4' (congrArg succ two))
     apply corollary_2_2_9 at two
@@ -1034,7 +1037,7 @@ lemma eq_if_mul_two_eq' {a b : Nat} : a * 2 = b * 2 → a = b := by
       rw (occs := .pos [3]) [proposition_2_2_4] at two
       rw (occs := .pos [1]) [proposition_2_2_5] at two
       rw (occs := .pos [1]) [← proposition_2_2_5] at two
-      rw (occs := .pos [2]) [← lemma_2_2_2 (b + b)] at two
+      rw (occs := .pos [2]) [← @lemma_2_2_2 (b + b)] at two
       apply proposition_2_2_6 at two
       apply corollary_2_2_9 at two
       replace two := two.left
@@ -1059,7 +1062,7 @@ lemma eq_if_mul_eq' {a b c : Nat} : a * c++ = b * c++ → a * c = b * c := by
       rw (occs := .pos [1]) [proposition_2_2_5] at h
       apply proposition_2_2_6 at h
       rw [proposition_2_2_4] at h
-      rw (occs := .pos [1]) [← lemma_2_2_2 a] at h
+      rw (occs := .pos [1]) [← @lemma_2_2_2 a] at h
       rw (occs := .pos [1]) [proposition_2_2_5] at h
       apply proposition_2_2_6 at h
       replace h : d = 0 ∧ d * c'++ = 0 := by
@@ -1079,7 +1082,7 @@ lemma eq_if_mul_eq' {a b c : Nat} : a * c++ = b * c++ → a * c = b * c := by
         rw (occs := .pos [2]) [proposition_2_2_4] at h
         rw (occs := .pos [1]) [proposition_2_2_5] at h
         rw (occs := .pos [1]) [← proposition_2_2_5] at h
-        rw (occs := .pos [2]) [← lemma_2_2_2 (b * c'++ + b)] at h
+        rw (occs := .pos [2]) [← @lemma_2_2_2 (b * c'++ + b)] at h
         apply proposition_2_2_6 at h
         replace h : d = 0 ∧ d * c'++ = 0 := corollary_2_2_9 h
         replace h : d = 0 := by grind
@@ -1106,7 +1109,7 @@ lemma proposition_2_3_6 {a b c : Nat} {h : a < b} {c_is_pos : Nat.IsPos c} :
       use (d * c)
     · by_contra h
       replace h : d * c = 0 := by
-        rw (occs := .pos [1]) [← lemma_2_2_2 (a * c)] at h
+        rw (occs := .pos [1]) [← @lemma_2_2_2 (a * c)] at h
         apply proposition_2_2_6 at h
         grind
       replace h : ¬ Nat.IsPos (d * c) := by grind
@@ -1122,7 +1125,7 @@ lemma corollary_2_3_7 {a b c : Nat} (h : a * c = b * c) (c_ne_0 : c ≠ 0) : a =
     | succ c' =>
       expose_names
       apply eq_if_mul_eq' at h
-      have : c'++ ≠ 0 := succ_ne c'
+      have : c'++ ≠ 0 := succ_ne
       replace a_ih := a_ih h this
       grind
 
@@ -1140,7 +1143,7 @@ lemma proposition_2_3_9 {n q : Nat} {q_is_pos : Nat.IsPos q} :
   | zero =>
     use 0, 0
     constructor
-    · exact proposition_2_2_12_a 0
+    · exact proposition_2_2_12_a
     · constructor
       · grind
       · simp [Nat.zero_mul]
@@ -1149,13 +1152,13 @@ lemma proposition_2_3_9 {n q : Nat} {q_is_pos : Nat.IsPos q} :
     by_cases r1_eq_q : r++ = q
     · use (m+1), 0
       constructor
-      · exact proposition_2_2_12_a 0
+      · exact proposition_2_2_12_a
       · constructor
         · grind
         · rw [ih']
           rw [← lemma_2_2_3]
           rw [r1_eq_q]
-          rw [lemma_2_2_2 ((m + 1) * q)]
+          rw [lemma_2_2_2]
           rw [add1_eq_succ]
           rw [succ_mul]
     · use m, (r+1)
@@ -1182,23 +1185,22 @@ instance Nat.instPow : HomogeneousPow Nat where
 /-- Definition 2.3.11 (Exponentiation for natural numbers)
 Compare with Mathlib's {name}`Nat.pow_zero` -/
 @[simp]
-theorem Nat.pow_zero (m: Nat) : m ^ (0:Nat) = 1 := recurse_zero (fun _ prod ↦ prod * m) _
+theorem Nat.pow_zero {m: Nat} : m ^ (0 : Nat) = 1 := recurse_zero (fun _ prod ↦ prod * m) _
 
 /-- Definition 2.3.11 (Exponentiation for natural numbers) -/
 @[simp]
-theorem Nat.zero_pow_zero : (0:Nat) ^ 0 = 1 := recurse_zero (fun _ prod ↦ prod * 0) _
+theorem Nat.zero_pow_zero : (0 : Nat) ^ 0 = 1 := recurse_zero (fun _ prod ↦ prod * 0) _
 
 /-- Definition 2.3.11 (Exponentiation for natural numbers)
 Compare with Mathlib's {name}`Nat.pow_succ` -/
-theorem Nat.pow_succ (m n: Nat) : (m:Nat) ^ n++ = m^n * m :=
-  recurse_succ (fun _ prod ↦ prod * m) _ _
+theorem Nat.pow_succ {m n: Nat} : (m:Nat) ^ n++ = m^n * m :=
+  recurse_succ (fun _ prod ↦ prod * m)
 
 /-- Compare with Mathlib's {name}`Nat.pow_one` -/
 @[simp]
-theorem Nat.pow_one (m: Nat) : m ^ (1:Nat) = m := by
+theorem Nat.pow_one {m: Nat} : m ^ (1:Nat) = m := by
   rw [←zero_succ, pow_succ]
   simp
-  exact one_mul m
 
 lemma mul_self_eq_pow_2 {n : Nat} : n * n = n ^ 2 := by
   exact recurse_zero (fun a a_1 ↦ n) (n * n)
@@ -1215,7 +1217,7 @@ theorem Nat.sq_add_eq (a b: Nat) :
   rw [proposition_2_3_4]
   rw [← proposition_2_2_5]
   rw (occs := .pos [3]) [Nat.mul_comm]
-  rw [← lemma_2_2_2 (a * a)]
+  rw [← @lemma_2_2_2 (a * a)]
   rw [proposition_2_2_5]
   rw [proposition_2_2_5]
   rw [proposition_2_2_5]
