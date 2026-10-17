@@ -677,12 +677,10 @@ lemma le_self {a : Nat} : a ≤ a := by
 Hint: define `Q n` to be the property that `P m` is true
 for all m₀ ≤ m < n; note that `Q n` is vacously true when n ≤ m₀.
 -/
-theorem proposition_2_2_14 : ∀ m₀ : Nat, ∀ P : Nat -> Prop,
+theorem proposition_2_2_14 {m₀ : Nat} {P : Nat -> Prop} :
     (∀ m ≥ m₀, (∀ m' ≥ m₀, m' < m → P m') → P m) → ∀ m ≥ m₀, P m := by
-  intro m₀ P h m hm
-  have hm' : ∃ c, m = m₀ + c := by
-    rcases hm with ⟨c, hm'⟩
-    grind
+  intro h m hm
+  have hm' : ∃ c, m = m₀ + c := by rcases hm with ⟨c, hm'⟩ ; grind
   rcases hm' with ⟨c, hm'⟩
   suffices key : ∀ c, ∀ m' ≥ m₀, m' ≤ m₀ + c → P m' by
     have := key c (m₀ + c) (by grind) proposition_2_2_12_a
@@ -727,9 +725,7 @@ theorem proposition_2_2_14 : ∀ m₀ : Nat, ∀ P : Nat -> Prop,
     rw (occs := .pos [2]) [← @lemma_2_2_2 m'] at a
     rw [proposition_2_2_5] at a
     apply proposition_2_2_6 at a
-    have : c2 = 0 := by
-      apply corollary_2_2_9 at a
-      grind
+    have : c2 = 0 := by apply corollary_2_2_9 at a ; grind
     simp [this] at b
     grind
   | succ c ih =>
@@ -742,9 +738,7 @@ theorem proposition_2_2_14 : ∀ m₀ : Nat, ∀ P : Nat -> Prop,
         exact lt_inc_eq_le.mp hlt )
       grind
     · have : m' ≤ m₀ + c := by
-        have : m' < m₀ + c++ := by
-          refine lt_eq_le_and_ne.mpr ?_
-          · constructor <;> grind
+        have : m' < m₀ + c++ := lt_eq_le_and_ne.mpr (by constructor <;> grind)
         rw [lemma_2_2_3 m₀ c] at this
         apply lt_inc_eq_le.mp at this
         grind
