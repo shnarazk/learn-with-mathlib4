@@ -14,8 +14,8 @@ linter.unusedVariables = true
 [[require]]
 name = "verso"
 scope = "leanprover"
-# rev = "v4.36.0"
-rev = "main"
+rev = "v4.36.0"
+# rev = "main"
 
 [[require]]
 name = "batteries"
